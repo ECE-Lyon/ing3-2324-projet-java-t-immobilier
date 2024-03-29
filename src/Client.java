@@ -9,7 +9,7 @@ public class Client extends Utilisateur {
     private List<visits_history> visits_history;
     private List<favorite_property> favorite_property;
     private List<action_history> action_history;
-    private List<own_property> own_property;
+    private List<Property> own_property;
     private boolean buyer;
     private boolean seller;
 
