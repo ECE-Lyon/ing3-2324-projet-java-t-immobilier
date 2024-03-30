@@ -5,18 +5,15 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 public class Main {
+
     public static void main(String[] args) {
-        Connection connection = null;
-        PreparedStatement statement = null;
-        ResultSet resultSet = null;
-
         try {
-            connection = DriverManager.getConnection("jdbc:mysql://localhost:8889/immobilier_ing3", "root", "root");
-
+            ConnectionDatabase.connect();
+            // Test pour récuperer les infos des utilisateurs
             String sqlQuery = "SELECT * FROM UTILISATEUR";
-            statement = connection.prepareStatement(sqlQuery);
+            PreparedStatement statement = ConnectionDatabase.getConnection().prepareStatement(sqlQuery);
 
-            resultSet = statement.executeQuery();
+            ResultSet resultSet = statement.executeQuery();
 
             while (resultSet.next()) {
                 int userId = resultSet.getInt("id_user");
@@ -31,19 +28,7 @@ public class Main {
         } catch (SQLException e) {
             e.printStackTrace();
         } finally {
-            try {
-                if (resultSet != null) {
-                    resultSet.close();
-                }
-                if (statement != null) {
-                    statement.close();
-                }
-                if (connection != null) {
-                    connection.close();
-                }
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
+            ConnectionDatabase.closeConnection();
         }
     }
 }

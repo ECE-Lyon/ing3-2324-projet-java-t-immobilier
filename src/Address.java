@@ -6,6 +6,8 @@ public class Address {
    private int postal_code;
    private Property id_property;
 
+
+
     public Address(int nombre, String nom, String ville, int ID_adresse, int code_postale, Property ID_property){
         this.number_street = nombre;
         this.name_street = nom;
