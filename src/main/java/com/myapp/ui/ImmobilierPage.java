@@ -16,7 +16,6 @@ import javafx.scene.text.TextAlignment;
 import javafx.stage.Stage;
 
 public class ImmobilierPage extends Application {
-
     @Override
     public void start(Stage primaryStage) {
         AnchorPane root = new AnchorPane();
