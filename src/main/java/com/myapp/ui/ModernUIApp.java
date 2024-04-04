@@ -127,7 +127,7 @@ public class ModernUIApp extends Application {
         root.setCenter(vbox);
 
         // Définir la largeur du carrousel et mettre à jour la largeur de l'image view
-        Scene scene = new Scene(root, 3024, 1964);
+        Scene scene = new Scene(root, 1920, 1080);
         scene.widthProperty().addListener((observable, oldValue, newValue) -> {
             customCarousel.setPrefWidth(newValue.doubleValue());
             customCarousel.updateImageViewWidth();

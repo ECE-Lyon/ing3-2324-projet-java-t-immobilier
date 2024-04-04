@@ -1,3 +1,5 @@
+package Class;
+
 public class Address {
    private int number_street;
    private String name_street;
