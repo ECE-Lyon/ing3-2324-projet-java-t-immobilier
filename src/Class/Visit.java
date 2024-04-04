@@ -1,3 +1,5 @@
+package Class;
+
 import java.util.Date;
 import java.time.LocalTime;
 

@@ -5,7 +5,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 public class Main {
-
     public static void main(String[] args) {
         try {
             ConnectionDatabase.connect();
@@ -20,11 +19,12 @@ public class Main {
                 String email = resultSet.getString("email");
                 String name = resultSet.getString("name");
 
-                System.out.println("ID Utilisateur : " + userId);
+                System.out.println("ID Class.Utilisateur : " + userId);
                 System.out.println("Email : " + email);
                 System.out.println("Nom : " + name);
                 System.out.println("----------------------");
             }
+
         } catch (SQLException e) {
             e.printStackTrace();
         } finally {

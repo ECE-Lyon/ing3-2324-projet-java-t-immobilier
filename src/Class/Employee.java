@@ -1,3 +1,5 @@
+package Class;
+
 public class Employee {
     private int id_employee;
     private Utilisateur id_user;

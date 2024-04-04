@@ -1,3 +1,5 @@
+package Class;
+
 import java.util.*;
 
 abstract class Utilisateur {
