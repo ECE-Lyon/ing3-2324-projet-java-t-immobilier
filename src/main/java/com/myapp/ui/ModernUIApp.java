@@ -1,0 +1,264 @@
+package com.myapp.ui;
+
+import javafx.animation.Animation;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
+import javafx.application.Application;
+import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.SimpleIntegerProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.Scene;
+import javafx.scene.control.*;
+import javafx.scene.effect.DropShadow;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.layout.*;
+import javafx.scene.paint.Color;
+import javafx.stage.Stage;
+import javafx.util.Duration;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class ModernUIApp extends Application {
+
+    // Définir une classe pour représenter une propriété immobilière
+    public static class Property {
+        private final String address;
+        private final String type;
+        private final String price;
+
+        public Property(String address, String type, String price) {
+            this.address = address;
+            this.type = type;
+            this.price = price;
+        }
+
+        public String getAddress() {
+            return address;
+        }
+
+        public String getType() {
+            return type;
+        }
+
+        public String getPrice() {
+            return price;
+        }
+    }
+
+    @Override
+    public void start(Stage primaryStage) {
+        BorderPane root = new BorderPane();
+        root.setStyle("-fx-background-color: white;");
+
+        // Logo de l'agence
+        ImageView logo = new ImageView(new Image(getClass().getResourceAsStream("/ece_immo.jpeg")));
+        logo.setFitWidth(120);
+        logo.setPreserveRatio(true);
+
+        // MenuBar avec fond blanc et éléments agrandis
+        MenuBar menuBar = new MenuBar();
+        menuBar.setStyle("-fx-background-color: white; -fx-font-size: 18px; -fx-padding: 15px 0; -fx-border-color: lightgrey; -fx-border-width: 0 0 1 0;");
+
+        // Menus avec items déroulants
+        Menu menuImmobilier = new Menu("Immobilier");
+        menuImmobilier.getItems().addAll(new MenuItem("Acheter"), new MenuItem("Vendre"), new MenuItem("Louer"));
+        Menu menuArtDeVivre = new Menu("Art de Vivre");
+        menuArtDeVivre.getItems().addAll(new MenuItem("Culture"), new MenuItem("Gastronomie"), new MenuItem("Voyages"));
+        Menu menuServices = new Menu("Services");
+        menuServices.getItems().addAll(new MenuItem("Conseils"), new MenuItem("Estimations"), new MenuItem("Financements"));
+        menuBar.getMenus().addAll(menuImmobilier, menuArtDeVivre, menuServices);
+
+        // Icône de profil à droite
+        ImageView profileIcon = new ImageView(new Image(getClass().getResourceAsStream("/icon.jpg")));
+        profileIcon.setFitWidth(30);
+        profileIcon.setFitHeight(30);
+        Button profileButton = new Button("", profileIcon);
+        profileButton.setStyle("-fx-background-color: transparent;");
+        HBox.setMargin(profileButton, new Insets(0, 0, 0, 20));
+
+        profileButton.setOnAction(event -> {
+            // Crée une nouvelle instance de Stage pour la page de connexion
+            Stage loginStage = new Stage();
+            try {
+                // Appelle la méthode start de LoginInterface sur le nouveau Stage
+                new LoginInterface().start(loginStage);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
+
+
+        // Layout pour la MenuBar et l'icône de profil
+        HBox menuContainer = new HBox(menuBar, profileButton);
+        menuContainer.setAlignment(Pos.CENTER_LEFT);
+        HBox.setHgrow(menuBar, Priority.ALWAYS);
+        menuContainer.setPadding(new Insets(0, 0, 0, 20));
+
+        // Layout pour le logo, la MenuBar et l'icône de profil
+        HBox topBar = new HBox(logo, menuContainer);
+        topBar.setAlignment(Pos.CENTER);
+        topBar.setSpacing(20);
+
+        root.setTop(topBar);
+
+        // Carrousel d'images
+        List<String> imagePaths = List.of("/image2.jpeg", "/image3.jpeg", "/image4.jpeg");
+        CarouselWithTimeline customCarousel = new CarouselWithTimeline(imagePaths, Duration.seconds(5));
+
+        StackPane imageContainer = new StackPane(customCarousel);
+        imageContainer.setStyle("-fx-background-color: white;");
+        root.setCenter(imageContainer);
+
+        // Barre de recherche au bas du carrousel
+        HBox searchBox = createSearchBox();
+        imageContainer.getChildren().add(searchBox);
+        StackPane.setAlignment(searchBox, Pos.BOTTOM_CENTER);
+
+        // Ajuster la disposition du BorderPane pour que le carrousel occupe toute la largeur de l'écran
+        VBox vbox = new VBox();
+        vbox.setSpacing(20);
+        vbox.getChildren().addAll(topBar, imageContainer);
+        VBox.setVgrow(imageContainer, Priority.ALWAYS);
+        root.setCenter(vbox);
+
+        // Définir la largeur du carrousel et mettre à jour la largeur de l'image view
+        Scene scene = new Scene(root, 3024, 1964);
+        scene.widthProperty().addListener((observable, oldValue, newValue) -> {
+            customCarousel.setPrefWidth(newValue.doubleValue());
+            customCarousel.updateImageViewWidth();
+        });
+        customCarousel.setPrefSize(scene.getWidth(), 768);
+        customCarousel.updateImageViewWidth();
+
+        // Pied de page
+        HBox footerLayout = createFooter();
+        root.setBottom(footerLayout);
+
+        // Configuration et affichage de la scène
+        scene.setFill(Color.WHITE);
+        primaryStage.setTitle("ECE International Realty - Accueil");
+        primaryStage.setScene(scene);
+        primaryStage.show();
+    }
+
+    private HBox createSearchBox() {
+        HBox searchBox = new HBox(10);
+        searchBox.setAlignment(Pos.CENTER);
+        searchBox.setPadding(new Insets(15));
+        searchBox.setStyle("-fx-background-color: rgba(176,165,165,0.43); -fx-background-radius: 5;");
+
+        ComboBox<String> comboBoxCountry = new ComboBox<>();
+        comboBoxCountry.getItems().addAll("France", "Espagne", "Italie");
+        comboBoxCountry.setPromptText("Pays");
+
+        ComboBox<String> comboBoxBuyRent = new ComboBox<>();
+        comboBoxBuyRent.getItems().addAll("Acheter", "Louer");
+        comboBoxBuyRent.setPromptText("Type d'achat");
+
+        TextField textFieldPropertyType = new TextField();
+        textFieldPropertyType.setPromptText("Type de bien");
+
+        TextField textFieldBudget = new TextField();
+        textFieldBudget.setPromptText("Budget");
+
+        Button buttonSearch = new Button("Rechercher");
+        buttonSearch.setStyle("-fx-background-color: darkblue; -fx-text-fill: white;");
+
+        searchBox.getChildren().addAll(comboBoxCountry, comboBoxBuyRent, textFieldPropertyType, textFieldBudget, buttonSearch);
+
+        return searchBox;
+    }
+
+    private HBox createFooter() {
+        HBox footerLayout = new HBox();
+        footerLayout.setAlignment(Pos.CENTER);
+        footerLayout.setStyle("-fx-background-color: #333;");
+        Label footerText = new Label("© 2024 ECE International Realty");
+        footerText.setStyle("-fx-text-fill: white;");
+        footerLayout.getChildren().add(footerText);
+
+        return footerLayout;
+    }
+
+    public static void main(String[] args) {
+        launch(args);
+    }
+}
+
+class CarouselWithTimeline extends StackPane {
+    private final List<String> imagePaths;
+    private final Duration delay;
+    private final IntegerProperty currentIndex = new SimpleIntegerProperty(0);
+    private final ProgressBar progressBar;
+    private final Timeline carouselTimeline;
+
+    public CarouselWithTimeline(List<String> imagePaths, Duration delay) {
+        this.imagePaths = imagePaths;
+        this.delay = delay;
+
+        getChildren().addAll(createImageView(), createDreamPropertyLabel()); // Ajoutez le label au carrousel
+
+        progressBar = new ProgressBar();
+        progressBar.setPrefWidth(200);
+
+        carouselTimeline = new Timeline(
+                new KeyFrame(Duration.ZERO, event -> {
+                    progressBar.setProgress(0);
+                }),
+                new KeyFrame(delay)
+        );
+        carouselTimeline.setCycleCount(Animation.INDEFINITE);
+        carouselTimeline.play();
+
+        Timeline progressBarTimeline = new Timeline(
+                new KeyFrame(Duration.ZERO, event -> {
+                    progressBar.setProgress(0);
+                }),
+                new KeyFrame(delay, event -> {
+                    int newIndex = (currentIndex.get() + 1) % imagePaths.size();
+                    currentIndex.set(newIndex);
+                    getChildren().set(0, createImageView());
+                })
+        );
+        progressBarTimeline.setCycleCount(Animation.INDEFINITE);
+        progressBarTimeline.play();
+    }
+
+    private ImageView createImageView() {
+        ImageView imageView = new ImageView(new Image(getClass().getResourceAsStream(imagePaths.get(currentIndex.get()))));
+        imageView.setFitWidth(getPrefWidth());
+        imageView.setPreserveRatio(true);
+        imageView.setSmooth(true);
+        return imageView;
+    }
+
+    private Label createDreamPropertyLabel() {
+        Label dreamPropertyLabel = new Label("Trouvez votre propriété de rêve...");
+        dreamPropertyLabel.setStyle("-fx-font-size: 26px; -fx-text-fill: white; -fx-font-family: 'Arial';");
+        dreamPropertyLabel.setAlignment(Pos.CENTER);
+        dreamPropertyLabel.setPrefWidth(getPrefWidth());
+        dreamPropertyLabel.setTranslateY(-350); // Déplacez le texte vers le haut
+        dreamPropertyLabel.setEffect(new DropShadow(2, Color.BLACK)); // Ajoutez une ombre
+        return dreamPropertyLabel;
+    }
+
+    public void updateImageViewWidth() {
+        if (getChildren().size() > 0 && getChildren().get(0) instanceof ImageView) {
+            ImageView imageView = (ImageView) getChildren().get(0);
+            imageView.setFitWidth(getPrefWidth());
+        }
+    }
+
+    public void pauseCarousel() {
+        carouselTimeline.pause();
+    }
+
+    public void resumeCarousel() {
+        carouselTimeline.play();
+    }
+}
