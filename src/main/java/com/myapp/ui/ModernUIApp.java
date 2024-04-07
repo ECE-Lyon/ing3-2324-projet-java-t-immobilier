@@ -145,6 +145,17 @@ public class ModernUIApp extends Application {
         customCarousel.setPrefSize(scene.getWidth(), 768);
         customCarousel.updateImageViewWidth();
 
+        // Bouton Historique
+        Button historiqueButton = new Button("Historique");
+        historiqueButton.setOnAction(event -> {
+            Stage historiqueStage = new Stage();
+            HistoriquePage historiquePage = new HistoriquePage(user);
+            historiquePage.start(historiqueStage);
+        });
+
+        // Ajouter le bouton Historique à la barre de menu
+        menuContainer.getChildren().add(0, historiqueButton);
+
         // Pied de page
         HBox footerLayout = createFooter();
         root.setBottom(footerLayout);
