@@ -21,6 +21,7 @@ import javafx.stage.Stage;
 import javafx.util.Duration;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 public class ModernUIApp extends Application {
@@ -52,6 +53,17 @@ public class ModernUIApp extends Application {
 
     @Override
     public void start(Stage primaryStage) {
+
+        Utilisateur user = Utilisateur.getCurrentUser();
+
+        // Info utilisateur Recup après connexion
+        int userId = user.getId();
+        String userEmail = user.getEmail();
+        String userPassword = user.getPassword();
+        Date inscriptionDate = user.getInscriptionDate();
+        String userName = user.getName();
+        boolean userStatus = user.getStatus();
+
         BorderPane root = new BorderPane();
         root.setStyle("-fx-background-color: white;");
 
@@ -82,10 +94,8 @@ public class ModernUIApp extends Application {
         HBox.setMargin(profileButton, new Insets(0, 0, 0, 20));
 
         profileButton.setOnAction(event -> {
-            // Crée une nouvelle instance de Stage pour la page de connexion
             Stage loginStage = new Stage();
             try {
-                // Appelle la méthode start de LoginInterface sur le nouveau Stage
                 new LoginInterface().start(loginStage);
             } catch (Exception e) {
                 e.printStackTrace();
@@ -144,6 +154,11 @@ public class ModernUIApp extends Application {
         primaryStage.setTitle("ECE International Realty - Accueil");
         primaryStage.setScene(scene);
         primaryStage.show();
+
+        // Afficher le nom de l'utilisateur dans la barre de menu ou ailleurs dans l'interface
+        Label userLabel = new Label("Connecté en tant que : " + userName);
+        userLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: black;");
+        menuContainer.getChildren().add(userLabel);
     }
 
     private HBox createSearchBox() {
@@ -188,6 +203,11 @@ public class ModernUIApp extends Application {
     public static void main(String[] args) {
         launch(args);
     }
+    public static void launchApp(Stage stage) {
+        ModernUIApp app = new ModernUIApp();
+        app.start(stage);
+    }
+
 }
 
 class CarouselWithTimeline extends StackPane {

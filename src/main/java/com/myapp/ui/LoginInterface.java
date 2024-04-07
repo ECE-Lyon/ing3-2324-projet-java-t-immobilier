@@ -1,4 +1,6 @@
 package com.myapp.ui;
+
+
 import javafx.application.Application;
 import javafx.geometry.*;
 import javafx.scene.Scene;
@@ -9,6 +11,8 @@ import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import javafx.util.Pair;
+import java.sql.Date;
+
 
 import java.sql.*;
 
@@ -102,7 +106,10 @@ public class LoginInterface extends Application {
             try {
                 boolean authenticated = verifyConnection(email, password);
                 if (authenticated) {
-                    showAlert(Alert.AlertType.INFORMATION, "Connexion réussie", "Vous êtes connecté !");
+                    Utilisateur user = getUserByEmail(email);
+                    Utilisateur.setCurrentUser(user);
+                    Stage stage = (Stage) signUpButton.getScene().getWindow();
+                    ModernUIApp.launchApp(stage);
                 } else {
                     showAlert(Alert.AlertType.ERROR, "Erreur de connexion", "Identifiant ou mot de passe incorrect.");
                 }
@@ -112,7 +119,6 @@ public class LoginInterface extends Application {
             }
         });
 
-        // Gestionnaire d'événements pour le lien de connexion
         loginLink.setOnAction(event -> {
             Dialog<Pair<String, String>> dialog = new Dialog<>();
             dialog.setTitle("Créer un compte");
@@ -176,6 +182,26 @@ public class LoginInterface extends Application {
         });
     }
 
+    private Utilisateur getUserByEmail(String email) throws SQLException {
+        String query = "SELECT * FROM UTILISATEUR WHERE email = ?";
+        try (PreparedStatement statement = connection.prepareStatement(query)) {
+            statement.setString(1, email);
+            ResultSet resultSet = statement.executeQuery();
+            if (resultSet.next()) {
+                int id = resultSet.getInt("id_user");
+                String userEmail = resultSet.getString("email");
+                String password = resultSet.getString("password");
+                Date inscriptionDate = resultSet.getDate("inscription_date");
+                String userName = resultSet.getString("name");
+                boolean status = resultSet.getBoolean("status_user");
+                return new Utilisateur(id, userEmail, password, inscriptionDate, userName, status);
+            } else {
+                return null;
+            }
+        }
+    }
+
+
     // Méthode pour se connecter à la base de données
     private void connect() throws SQLException {
         connection = DriverManager.getConnection("jdbc:mysql://localhost:8889/immobilier_ing3", "root", "root");
@@ -196,7 +222,6 @@ public class LoginInterface extends Application {
     private boolean createUser(String email, String password) throws SQLException {
         String query = "INSERT INTO UTILISATEUR (email, password, inscription_date, name, status_user) VALUES (?, ?, ?, ?, ?)";
         try (PreparedStatement statement = connection.prepareStatement(query)) {
-            // Remplissage des paramètres
             statement.setString(1, email);
             statement.setString(2, password);
             statement.setDate(3, new java.sql.Date(System.currentTimeMillis())); // Date du jour
