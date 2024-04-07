@@ -44,6 +44,14 @@ public class Utilisateur {
         return status;
     }
 
+    public void setName(String newName) {
+        this.name = newName;
+    }
+
+    public void setEmail(String newEmail) {
+        this.email = newEmail;
+    }
+
     // Méthode pour définir l'utilisateur actuellement connecté
     public static void setCurrentUser(Utilisateur user) {
         currentUser = user;

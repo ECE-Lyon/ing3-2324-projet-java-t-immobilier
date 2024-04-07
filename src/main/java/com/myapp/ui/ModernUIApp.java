@@ -10,6 +10,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Cursor;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.effect.DropShadow;
@@ -60,7 +61,7 @@ public class ModernUIApp extends Application {
         int userId = user.getId();
         String userEmail = user.getEmail();
         String userPassword = user.getPassword();
-        Date inscriptionDate = user.getInscriptionDate();
+        Date userInscriptionDate = user.getInscriptionDate();
         String userName = user.getName();
         boolean userStatus = user.getStatus();
 
@@ -93,14 +94,13 @@ public class ModernUIApp extends Application {
         profileButton.setStyle("-fx-background-color: transparent;");
         HBox.setMargin(profileButton, new Insets(0, 0, 0, 20));
 
+        // Gestionnaire d'événements pour le clic sur l'icône de profil
         profileButton.setOnAction(event -> {
-            Stage loginStage = new Stage();
-            try {
-                new LoginInterface().start(loginStage);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            Stage profileStage = new Stage();
+            ProfilPage profilPage = new ProfilPage(userName, userEmail, userInscriptionDate,userStatus);
+            profilPage.start(profileStage);
         });
+
 
 
         // Layout pour la MenuBar et l'icône de profil
