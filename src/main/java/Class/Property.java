@@ -1,3 +1,5 @@
+package Class;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,7 +19,7 @@ public class Property {
     private Employee id_employee;
     private List<Client> buyer_list;
 
-    public Property(int ID_Propriete, float taille, String descrip, Double prix, boolean statut_vente,boolean piscine, boolean jardin, String propriete_type, int nb_chambre,boolean visite_programme,Client ID_client,Visit ID_visit,Employee ID_employee){
+    public Property(int ID_Propriete, float taille, String descrip, Double prix, boolean statut_vente, boolean piscine, boolean jardin, String propriete_type, int nb_chambre, boolean visite_programme, Client ID_client, Visit ID_visit, Employee ID_employee){
         this.id_property=ID_Propriete;
         this.size = taille;
         this.description = descrip;

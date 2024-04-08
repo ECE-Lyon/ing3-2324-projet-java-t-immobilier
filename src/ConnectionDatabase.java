@@ -8,7 +8,7 @@ public class ConnectionDatabase {
     private static Connection connection;
 
     public static void connect() throws SQLException {
-        connection = DriverManager.getConnection("jdbc:mysql://localhost:8889/immobilier_ing3", "root", "root");
+        connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/immobilier_ing3", "root", "root");
     }
 
     public static Connection getConnection() {
