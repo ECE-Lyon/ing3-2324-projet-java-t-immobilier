@@ -21,11 +21,30 @@ import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+
 public class ModernUIApp extends Application {
+    public ObservableList<String> getCitiesFromDatabase() {
+        ObservableList<String> cities = FXCollections.observableArrayList();
+
+        String query = "SELECT city FROM ADDRESS"; // Requête SQL pour récupérer les villes
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(query);
+             ResultSet resultSet = stmt.executeQuery()) {
+
+            while (resultSet.next()) {
+                cities.add(resultSet.getString("city")); // Ajoute chaque ville à la liste
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return cities;
+    }
 
     // Définir une classe pour représenter une propriété immobilière
     public static class Property {
@@ -178,9 +197,9 @@ public class ModernUIApp extends Application {
         searchBox.setPadding(new Insets(15));
         searchBox.setStyle("-fx-background-color: rgba(176,165,165,0.43); -fx-background-radius: 5;");
 
-        ComboBox<String> comboBoxCountry = new ComboBox<>();
-        comboBoxCountry.getItems().addAll("France", "Espagne", "Italie");
-        comboBoxCountry.setPromptText("Pays");
+        ComboBox<String> comboBoxCity = new ComboBox<>();
+        comboBoxCity.setItems(getCitiesFromDatabase());
+        comboBoxCity.setPromptText("Ville");
 
         ComboBox<String> comboBoxBuyRent = new ComboBox<>();
         comboBoxBuyRent.getItems().addAll("Acheter", "Louer");
@@ -195,7 +214,7 @@ public class ModernUIApp extends Application {
         Button buttonSearch = new Button("Rechercher");
         buttonSearch.setStyle("-fx-background-color: darkblue; -fx-text-fill: white;");
 
-        searchBox.getChildren().addAll(comboBoxCountry, comboBoxBuyRent, textFieldPropertyType, textFieldBudget, buttonSearch);
+        searchBox.getChildren().addAll(comboBoxCity, comboBoxBuyRent, textFieldPropertyType, textFieldBudget, buttonSearch);
 
         return searchBox;
     }

@@ -204,7 +204,7 @@ public class LoginInterface extends Application {
 
     // Méthode pour se connecter à la base de données
     private void connect() throws SQLException {
-        connection = DriverManager.getConnection("jdbc:mysql://localhost:8889/immobilier_ing3", "root", "root");
+        connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/immobilier_ing3", "root", "root");
     }
 
     // Méthode pour vérifier l'authentification de l'utilisateur
