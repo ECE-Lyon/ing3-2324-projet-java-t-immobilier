@@ -116,8 +116,8 @@ public class ModernUIApp extends Application {
         // Gestionnaire d'événements pour le clic sur l'icône de profil
         profileButton.setOnAction(event -> {
             Stage profileStage = new Stage();
-            ProfilPage profilPage = new ProfilPage(userName, userEmail, userInscriptionDate,userStatus);
-            profilPage.start(profileStage);
+            ClientInfoPage clientInfoPage = new ClientInfoPage(userId); // Passer l'ID de l'utilisateur
+            clientInfoPage.start(profileStage);
         });
 
 
