@@ -57,9 +57,15 @@ public class MonProfilPage extends Application {
         Button myVisitsButton = createSectionButton("Mes visites");
         Button myFavoritesButton = createSectionButton("Mes propriétés favorites");
         Button myPropertiesButton = createSectionButton("Mes propriétés mises en vente");
+        // Création du bouton pour l'historique
+        Button myHistoryButton = createSectionButton("Mon historique");
+
+// Ajout des éléments au conteneur du profil
+        profileLayout.getChildren().addAll(title, subtitle, myInfoButton, myVisitsButton, myFavoritesButton, myPropertiesButton, myHistoryButton);
+
 
         // Ajout des éléments au conteneur du profil
-        profileLayout.getChildren().addAll(title, subtitle, myInfoButton, myVisitsButton, myFavoritesButton, myPropertiesButton);
+        //profileLayout.getChildren().addAll(title, subtitle, myInfoButton, myVisitsButton, myFavoritesButton, myPropertiesButton);
 
         // Ajout des éléments à la grille principale
         root.add(profileLayout, 0, 1, 2, 1);
@@ -71,6 +77,7 @@ public class MonProfilPage extends Application {
     }
 
     // Fonction pour créer des boutons de section
+    // Fonction pour créer des boutons de section
     private Button createSectionButton(String text) {
         Button button = new Button(text);
         button.setStyle("-fx-background-color: rgb(213, 119, 195); -fx-text-fill: white;");
@@ -79,6 +86,7 @@ public class MonProfilPage extends Application {
         button.setFont(Font.font(16)); // Taille de police du bouton ajustée selon vos besoins
         return button;
     }
+
 
     public static void main(String[] args) {
         launch(args);
