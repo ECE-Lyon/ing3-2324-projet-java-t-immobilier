@@ -1,11 +1,10 @@
 package com.myapp.ui;
+
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
@@ -14,9 +13,31 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
 
+import java.sql.*;
+import java.util.Date;
+
 public class ClientInfoPage extends Application {
 
+    private String userName;
+    private String userEmail;
+    private String userPassword;
+    private Date inscriptionDate;
+    private boolean userStatus;
+    private Button confirmButton; // Déclaration du bouton de confirmation en tant que membre de classe
+
     private boolean isEditable = false; // Pour suivre l'état d'édition
+
+    private int userId; // Ajout de l'ID de l'utilisateur
+
+    private TextField nameField;
+    private TextField emailField;
+    private TextField passwordField;
+    private TextField dateField;
+    private TextField statutField;
+
+    public ClientInfoPage(int userId) {
+        this.userId = userId;
+    }
 
     @Override
     public void start(Stage primaryStage) {
@@ -56,24 +77,24 @@ public class ClientInfoPage extends Application {
 
         // Labels et champs de texte pour les informations du client
         Label nameLabel = new Label("Nom:");
-        TextField nameField = new TextField("John"); // Champ de texte pour le nom
-        nameField.setEditable(isEditable);
-
-        Label surnameLabel = new Label("Prénom:");
-        TextField surnameField = new TextField("Doe"); // Champ de texte pour le prénom
-        surnameField.setEditable(isEditable);
+        nameField = new TextField();
+        nameField.setEditable(false); // Le champ de texte est désactivé par défaut
 
         Label emailLabel = new Label("Email:");
-        TextField emailField = new TextField("john.doe@example.com"); // Champ de texte pour l'email
-        emailField.setEditable(isEditable);
+        emailField = new TextField();
+        emailField.setEditable(false); // Le champ de texte est désactivé par défaut
 
         Label passwordLabel = new Label("Mot de passe:");
-        TextField passwordField = new TextField("motdepasse123"); // Champ de texte pour le mot de passe
-        passwordField.setEditable(isEditable);
+        passwordField = new TextField();
+        passwordField.setEditable(false); // Le champ de texte est désactivé par défaut
 
-        Label addressLabel = new Label("Adresse:");
-        TextField addressField = new TextField("123 rue de la Rue, Ville"); // Champ de texte pour l'adresse
-        addressField.setEditable(isEditable);
+        Label dateLabel = new Label("Inscription Date:");
+        dateField = new TextField();
+        dateField.setEditable(false); // Le champ de texte est désactivé par défaut
+
+        Label statutLabel = new Label("Statut:");
+        statutField = new TextField();
+        statutField.setEditable(false); // Le champ de texte est désactivé par défaut
 
         // Bouton pour modifier ou enregistrer les modifications
         Button editButton = new Button("Modifier");
@@ -94,19 +115,19 @@ public class ClientInfoPage extends Application {
             }
             // Activer ou désactiver l'édition des champs de texte
             nameField.setEditable(isEditable);
-            surnameField.setEditable(isEditable);
             emailField.setEditable(isEditable);
             passwordField.setEditable(isEditable);
-            addressField.setEditable(isEditable);
+            dateField.setEditable(isEditable);
+            statutField.setEditable(isEditable);
         });
 
         // Ajout des éléments au conteneur des informations du client
         clientInfoLayout.getChildren().addAll(
                 nameLabel, nameField,
-                surnameLabel, surnameField,
                 emailLabel, emailField,
                 passwordLabel, passwordField,
-                addressLabel, addressField,
+                dateLabel, dateField,
+                statutLabel, statutField,
                 editButton
         );
 
@@ -118,6 +139,43 @@ public class ClientInfoPage extends Application {
         Scene scene = new Scene(root, 1000, 600); // Taille de la scène ajustée selon vos besoins
         primaryStage.setScene(scene);
         primaryStage.show();
+
+        // Récupérer les informations du client à partir de la base de données et les remplir dans les champs de texte
+        populateClientInfo();
+    }
+
+    private void populateClientInfo() {
+        try {
+            // Connexion à la base de données
+            Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:8889/immobilier_ing3", "root", "root");
+
+            // Requête SQL pour récupérer les informations de l'utilisateur à partir de l'ID
+            String query = "SELECT name, email, password, inscription_date, status_user FROM UTILISATEUR WHERE id_user = ?";
+
+            // Préparation de la requête
+            PreparedStatement preparedStatement = connection.prepareStatement(query);
+            preparedStatement.setInt(1, userId);
+
+            // Exécution de la requête
+            ResultSet resultSet = preparedStatement.executeQuery();
+
+            // Traitement des résultats de la requête
+            if (resultSet.next()) {
+                // Remplissage des champs de texte avec les données récupérées
+                nameField.setText(resultSet.getString("name"));
+                emailField.setText(resultSet.getString("email"));
+                passwordField.setText(resultSet.getString("password"));
+                dateField.setText(resultSet.getString("inscription_date"));
+                statutField.setText(resultSet.getBoolean("status_user") ? "Client" : "Employé");
+            }
+
+            // Fermeture des ressources
+            resultSet.close();
+            preparedStatement.close();
+            connection.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     public static void main(String[] args) {
