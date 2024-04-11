@@ -11,111 +11,98 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import javafx.scene.text.Font;
-import javafx.scene.text.FontWeight;
-import javafx.scene.text.TextAlignment;
 import javafx.stage.Stage;
 
 public class ImmobilierPage extends Application {
+    private static final double CARD_WIDTH = 400.0;
+
     @Override
     public void start(Stage primaryStage) {
-        AnchorPane root = new AnchorPane();
-        root.setStyle("-fx-background-color: #f4f4f4;");
+        // Créer le header avec des options de filtrage
+        HBox headerBox = createHeader();
 
-        // Titre de la page
-        Label titleLabel = new Label("Bienvenue chez ECE International Realty");
-        titleLabel.setFont(Font.font("Arial", FontWeight.BOLD, 24));
-        titleLabel.setTextAlignment(TextAlignment.CENTER);
-        AnchorPane.setTopAnchor(titleLabel, 20.0);
-        AnchorPane.setLeftAnchor(titleLabel, 0.0);
-        AnchorPane.setRightAnchor(titleLabel, 0.0);
+        // GridPane pour les annonces
+        GridPane annoncesGrid = new GridPane();
+        annoncesGrid.setHgap(20); // Espacement horizontal entre les cartes
+        annoncesGrid.setVgap(20); // Espacement vertical entre les cartes
+        annoncesGrid.setAlignment(Pos.CENTER);
+        annoncesGrid.setPadding(new Insets(25, 25, 25, 25));
 
-        // Annonces professionnelles
-        VBox annoncesBox = createAnnoncesBox(primaryStage);
+        // Création des annonces
+        int numCols = 2; // Nombre de colonnes
+        int numRows = 8; // Nombre de lignes (selon le besoin)
+        for (int i = 0; i < numRows; i++) {
+            for (int j = 0; j < numCols; j++) {
+                VBox annonce = createAnnonce("Villa Porto-Vecchio", "5 pièces - 4 chambres - 145m²", "image2.jpeg");
+                annoncesGrid.add(annonce, j, i); // Ajoutez les annonces à la grille
+            }
+        }
 
-        // Conteneur central avec ScrollPane
-        ScrollPane scrollPane = new ScrollPane();
-        scrollPane.setContent(annoncesBox);
-        scrollPane.setFitToWidth(true); // Ajuster la largeur du ScrollPane à la largeur de la scène
-        scrollPane.setPadding(new Insets(20)); // Ajouter des marges
-        scrollPane.setStyle("-fx-background: transparent;"); // Arrière-plan transparent
+        // ScrollPane pour les annonces
+        ScrollPane scrollPane = new ScrollPane(annoncesGrid);
+        scrollPane.setFitToWidth(true);
 
-        // Conteneur principal
-        VBox centerBox = new VBox(20);
-        centerBox.setAlignment(Pos.CENTER);
-        centerBox.getChildren().addAll(titleLabel, scrollPane);
-        AnchorPane.setTopAnchor(centerBox, 60.0);
-        AnchorPane.setLeftAnchor(centerBox, 0.0);
-        AnchorPane.setRightAnchor(centerBox, 0.0);
-        AnchorPane.setBottomAnchor(centerBox, 0.0);
-
-        root.getChildren().add(centerBox);
+        // BorderPane pour organiser le header et les annonces
+        BorderPane root = new BorderPane();
+        root.setTop(headerBox);
+        root.setCenter(scrollPane);
 
         // Affichage de la scène
-        Scene scene = new Scene(root, 3024, 1964);
+        Scene scene = new Scene(root, 1024, 768); // Taille par défaut, peut être ajustée ou mise en plein écran
         primaryStage.setScene(scene);
         primaryStage.setTitle("Liste des propriétés immobilières");
         primaryStage.show();
     }
 
-    private VBox createAnnoncesBox(Stage primaryStage) {
-        VBox annoncesBox = new VBox(20);
-        annoncesBox.setAlignment(Pos.CENTER);
-
-        // Générer de fausses annonces
-        for (int i = 1; i <= 15; i++) {
-            String title = "Propriété " + i;
-            String details = "5 pièces - 200 m² - Prix: " + (i * 100000) + " €";
-            String imagePath = "image2.jpeg"; // L'image peut être la même pour toutes les annonces
-            VBox annonce = createAnnonce(title, details, imagePath, primaryStage.getWidth() * 0.75);
-            annoncesBox.getChildren().add(annonce);
-        }
-
-        // Adjust image width when stage width changes
-        primaryStage.widthProperty().addListener((obs, oldVal, newVal) -> {
-            double newWidth = newVal.doubleValue() * 0.75; // 3/4 of the new stage width
-            for (int i = 0; i < annoncesBox.getChildren().size(); i++) {
-                VBox annonce = (VBox) annoncesBox.getChildren().get(i);
-                ((ImageView) ((GridPane) annonce.getChildren().get(0)).getChildren().get(0)).setFitWidth(newWidth);
-            }
-        });
-
-        return annoncesBox;
-    }
-
-    private VBox createAnnonce(String title, String details, String imagePath, double imageWidth) {
+    private VBox createAnnonce(String title, String details, String imagePath) {
         VBox annonceBox = new VBox(10);
+        annonceBox.setPadding(new Insets(15));
+        annonceBox.setStyle("-fx-background-color: #ffffff; -fx-border-color: #c0c0c0;");
         annonceBox.setAlignment(Pos.CENTER_LEFT);
 
         Image image = new Image(imagePath);
+        double imageWidth = CARD_WIDTH - 30; // Soustrayez la valeur de padding pour maintenir la largeur de la carte
+        double imageHeight = imageWidth * (image.getHeight() / image.getWidth());
         ImageView imageView = new ImageView(image);
-        imageView.setFitHeight(100);
-        imageView.setFitWidth(imageWidth); // Set image width to 3/4 of the stage width
-        imageView.setPreserveRatio(true);
-
-        GridPane gridPane = new GridPane();
-        gridPane.setHgap(10);
-        gridPane.setVgap(5);
-        gridPane.setAlignment(Pos.CENTER_LEFT);
+        imageView.setFitWidth(imageWidth);
+        imageView.setFitHeight(imageHeight);
 
         Label titleLabel = new Label(title);
-        titleLabel.setFont(Font.font("Arial", FontWeight.BOLD, 16));
+        titleLabel.setFont(Font.font("Arial", 20));
+
         Label detailsLabel = new Label(details);
-        detailsLabel.setFont(Font.font("Arial", FontWeight.NORMAL, 12));
-        detailsLabel.setWrapText(true); // Permettre le retour à la ligne pour la description
+        detailsLabel.setFont(Font.font("Arial", 16));
 
         Button visitButton = new Button("Programmer une visite");
-        visitButton.setFont(Font.font("Arial", FontWeight.NORMAL, 12));
+        visitButton.setStyle("-fx-background-color: rgb(213, 119, 195); -fx-text-fill: white;");
 
-        gridPane.add(imageView, 0, 0);
-        gridPane.add(titleLabel, 1, 0);
-        gridPane.add(detailsLabel, 1, 1);
-        gridPane.add(visitButton, 1, 2); // Ajouter le bouton à la grille
-
-        annonceBox.getChildren().add(gridPane);
+        annonceBox.getChildren().addAll(imageView, titleLabel, detailsLabel, visitButton);
 
         return annonceBox;
     }
 
+    private HBox createHeader() {
+        HBox headerBox = new HBox(20);
+        headerBox.setPadding(new Insets(15));
+        headerBox.setStyle("-fx-background-color: #336699;");
+        headerBox.setAlignment(Pos.CENTER);
+
+        Button homeButton = new Button("Accueil");
+        styleButton(homeButton);
+        Button propertyButton = new Button("Propriétés");
+        styleButton(propertyButton);
+        Button contactButton = new Button("Contact");
+        styleButton(contactButton);
+
+        headerBox.getChildren().addAll(homeButton, propertyButton, contactButton);
+
+        return headerBox;
+    }
+
+    private void styleButton(Button button) {
+        button.setStyle("-fx-background-color: white; -fx-text-fill: #336699;");
+        button.setFont(Font.font("Arial", 14));
+    }
 
     public static void main(String[] args) {
         launch(args);
