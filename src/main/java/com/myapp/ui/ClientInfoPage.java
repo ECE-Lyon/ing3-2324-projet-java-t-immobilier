@@ -14,16 +14,8 @@ import javafx.scene.text.Font;
 import javafx.stage.Stage;
 
 import java.sql.*;
-import java.util.Date;
 
 public class ClientInfoPage extends Application {
-
-    private String userName;
-    private String userEmail;
-    private String userPassword;
-    private Date inscriptionDate;
-    private boolean userStatus;
-    private Button confirmButton; // Déclaration du bouton de confirmation en tant que membre de classe
 
     private boolean isEditable = false; // Pour suivre l'état d'édition
 
@@ -105,14 +97,15 @@ public class ClientInfoPage extends Application {
 
         // Action lorsque le bouton est cliqué
         editButton.setOnAction(e -> {
-            isEditable = !isEditable; // Inverser l'état d'édition
             if (isEditable) {
-                editButton.setText("Enregistrer");
-            } else {
+                // Enregistrer les modifications dans la base de données
+                updateClientInfo();
+                showAlert("Les modifications ont été enregistrées avec succès !");
                 editButton.setText("Modifier");
-                // Afficher une fenêtre d'information lorsque le profil est mis à jour
-                //showAlert("Profil mis à jour avec succès !");
+            } else {
+                editButton.setText("Enregistrer");
             }
+            isEditable = !isEditable; // Inverser l'état d'édition
             // Activer ou désactiver l'édition des champs de texte
             nameField.setEditable(isEditable);
             emailField.setEditable(isEditable);
@@ -176,6 +169,44 @@ public class ClientInfoPage extends Application {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+    }
+
+    // Méthode pour mettre à jour les informations du client dans la base de données
+    private void updateClientInfo() {
+        try {
+            // Connexion à la base de données
+            Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:8889/immobilier_ing3", "root", "root");
+
+            // Requête SQL pour mettre à jour les informations du client
+            String query = "UPDATE UTILISATEUR SET name = ?, email = ?, password = ?, inscription_date = ?, status_user = ? WHERE id_user = ?";
+
+            // Préparation de la requête
+            PreparedStatement preparedStatement = connection.prepareStatement(query);
+            preparedStatement.setString(1, nameField.getText());
+            preparedStatement.setString(2, emailField.getText());
+            preparedStatement.setString(3, passwordField.getText());
+            preparedStatement.setString(4, dateField.getText());
+            preparedStatement.setBoolean(5, statutField.getText().equalsIgnoreCase("Client")); // Convertir le texte en booléen
+            preparedStatement.setInt(6, userId);
+
+            // Exécution de la requête
+            preparedStatement.executeUpdate();
+
+            // Fermeture des ressources
+            preparedStatement.close();
+            connection.close();
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    // Méthode pour afficher une alerte (pop-up) avec un message spécifié
+    private void showAlert(String message) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle("Information");
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
     }
 
     public static void main(String[] args) {
