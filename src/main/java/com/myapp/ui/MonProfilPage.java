@@ -18,6 +18,9 @@ public class MonProfilPage extends Application {
     public void start(Stage primaryStage) {
         primaryStage.setTitle("Mon Profil");
 
+        Utilisateur user = Utilisateur.getCurrentUser();
+        int userId = user.getId();
+
         // Conteneur principal avec une grille pour organiser les éléments
         GridPane root = new GridPane();
         root.setAlignment(Pos.CENTER);
@@ -53,25 +56,37 @@ public class MonProfilPage extends Application {
         subtitle.setStyle("-fx-font-size: 14px; -fx-text-fill: #666;");
 
         // Boutons pour chaque section
+
+        // Bouton pour afficher les informations du client
         Button myInfoButton = createSectionButton("Mes informations");
+        myInfoButton.setOnAction(event -> {
+            Stage clientInfoStage = new Stage();
+            ClientInfoPage clientInfoPage = new ClientInfoPage(userId);
+            clientInfoPage.start(clientInfoStage);
+        });
         Button myVisitsButton = createSectionButton("Mes visites");
         Button myFavoritesButton = createSectionButton("Mes propriétés favorites");
         Button myPropertiesButton = createSectionButton("Mes propriétés mises en vente");
         // Création du bouton pour l'historique
         Button myHistoryButton = createSectionButton("Mon historique");
+        myHistoryButton.setOnAction(event -> {
+            Stage historiqueStage = new Stage();
+            HistoriquePage historiquePage = new HistoriquePage(user);
+            historiquePage.start(historiqueStage);
+        });
 
-// Ajout des éléments au conteneur du profil
-        profileLayout.getChildren().addAll(title, subtitle, myInfoButton, myVisitsButton, myFavoritesButton, myPropertiesButton, myHistoryButton);
 
 
         // Ajout des éléments au conteneur du profil
-        //profileLayout.getChildren().addAll(title, subtitle, myInfoButton, myVisitsButton, myFavoritesButton, myPropertiesButton);
+        profileLayout.getChildren().addAll(title, subtitle, myInfoButton, myVisitsButton, myFavoritesButton, myPropertiesButton, myHistoryButton);
+
+
 
         // Ajout des éléments à la grille principale
         root.add(profileLayout, 0, 1, 2, 1);
 
         // Configuration de la scène
-        Scene scene = new Scene(root, 3024, 1964); // Taille de la scène ajustée selon vos besoins
+        Scene scene = new Scene(root, 1920, 1080); // Taille de la scène ajustée selon vos besoins
         primaryStage.setScene(scene);
         primaryStage.show();
     }

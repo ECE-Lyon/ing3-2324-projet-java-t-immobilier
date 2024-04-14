@@ -114,10 +114,15 @@ public class ModernUIApp extends Application {
         HBox.setMargin(profileButton, new Insets(0, 0, 0, 20));
 
         // Gestionnaire d'événements pour le clic sur l'icône de profil
-        profileButton.setOnAction(event -> {
+        /*profileButton.setOnAction(event -> {
             Stage profileStage = new Stage();
             ClientInfoPage clientInfoPage = new ClientInfoPage(userId); // Passer l'ID de l'utilisateur
             clientInfoPage.start(profileStage);
+        });*/
+        profileButton.setOnAction(event -> {
+            Stage profileStage = new Stage();
+            MonProfilPage monProfilPage = new MonProfilPage();
+            monProfilPage.start(profileStage);
         });
 
 
@@ -164,16 +169,6 @@ public class ModernUIApp extends Application {
         customCarousel.setPrefSize(scene.getWidth(), 768);
         customCarousel.updateImageViewWidth();
 
-        // Bouton Historique
-        Button historiqueButton = new Button("Historique");
-        historiqueButton.setOnAction(event -> {
-            Stage historiqueStage = new Stage();
-            HistoriquePage historiquePage = new HistoriquePage(user);
-            historiquePage.start(historiqueStage);
-        });
-
-        // Ajouter le bouton Historique à la barre de menu
-        menuContainer.getChildren().add(0, historiqueButton);
 
         // Pied de page
         HBox footerLayout = createFooter();

@@ -140,8 +140,7 @@ public class ClientInfoPage extends Application {
     private void populateClientInfo() {
         try {
             // Connexion à la base de données
-            Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:8889/immobilier_ing3", "root", "root");
-
+            Connection connection = DatabaseConnection.getConnection();
             // Requête SQL pour récupérer les informations de l'utilisateur à partir de l'ID
             String query = "SELECT name, email, password, inscription_date, status_user FROM UTILISATEUR WHERE id_user = ?";
 
@@ -175,7 +174,7 @@ public class ClientInfoPage extends Application {
     private void updateClientInfo() {
         try {
             // Connexion à la base de données
-            Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:8889/immobilier_ing3", "root", "root");
+            Connection connection = DatabaseConnection.getConnection();
 
             // Requête SQL pour mettre à jour les informations du client
             String query = "UPDATE UTILISATEUR SET name = ?, email = ?, password = ?, inscription_date = ?, status_user = ? WHERE id_user = ?";

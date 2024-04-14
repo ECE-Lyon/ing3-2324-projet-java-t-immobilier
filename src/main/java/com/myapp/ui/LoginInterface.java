@@ -26,7 +26,8 @@ public class LoginInterface extends Application {
 
         // Connexion à la base de données
         try {
-            connect();
+            // Utilisation de la classe DatabaseConnection pour établir la connexion
+            connection = DatabaseConnection.getConnection();
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -201,11 +202,6 @@ public class LoginInterface extends Application {
         }
     }
 
-
-    // Méthode pour se connecter à la base de données
-    private void connect() throws SQLException {
-        connection = DriverManager.getConnection("jdbc:mysql://localhost:8889/immobilier_ing3", "root", "root");
-    }
 
     // Méthode pour vérifier l'authentification de l'utilisateur
     private boolean verifyConnection(String email, String password) throws SQLException {
