@@ -6,7 +6,6 @@ module com.example.demo2 {
 
     opens com.example.demo2 to javafx.fxml;
     exports com.example.demo2;
-    exports com.myapp.ui;
     opens com.myapp.ui to javafx.fxml;
     exports dao;
     opens dao to javafx.fxml;
