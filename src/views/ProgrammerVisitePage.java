@@ -1,4 +1,4 @@
-package com.myapp.ui;
+package views;
 
 import javafx.application.Application;
 import javafx.geometry.HPos;
@@ -13,8 +13,6 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
-import javafx.scene.text.Font;
 import javafx.stage.Stage;
 
 public class ProgrammerVisitePage extends Application {

@@ -1,5 +1,8 @@
-package com.myapp.ui;
+package views;
 
+import models.Utilisateur;
+
+import dao.DatabaseConnection;
 import javafx.animation.Animation;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
@@ -10,7 +13,6 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.Cursor;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.effect.DropShadow;
@@ -22,7 +24,6 @@ import javafx.stage.Stage;
 import javafx.util.Duration;
 
 import java.sql.*;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -44,31 +45,6 @@ public class ModernUIApp extends Application {
             e.printStackTrace();
         }
         return cities;
-    }
-
-    // Définir une classe pour représenter une propriété immobilière
-    public static class Property {
-        private final String address;
-        private final String type;
-        private final String price;
-
-        public Property(String address, String type, String price) {
-            this.address = address;
-            this.type = type;
-            this.price = price;
-        }
-
-        public String getAddress() {
-            return address;
-        }
-
-        public String getType() {
-            return type;
-        }
-
-        public String getPrice() {
-            return price;
-        }
     }
 
     @Override

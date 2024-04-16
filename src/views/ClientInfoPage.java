@@ -1,5 +1,6 @@
-package com.myapp.ui;
+package views;
 
+import dao.ClientInfoPageDAO;
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -99,7 +100,8 @@ public class ClientInfoPage extends Application {
         editButton.setOnAction(e -> {
             if (isEditable) {
                 // Enregistrer les modifications dans la base de données
-                updateClientInfo();
+                ClientInfoPageDAO dao = new ClientInfoPageDAO();
+                dao.updateClientInfo(nameField, emailField, passwordField, dateField, statutField, userId);
                 showAlert("Les modifications ont été enregistrées avec succès !");
                 editButton.setText("Modifier");
             } else {
@@ -134,70 +136,10 @@ public class ClientInfoPage extends Application {
         primaryStage.show();
 
         // Récupérer les informations du client à partir de la base de données et les remplir dans les champs de texte
-        populateClientInfo();
+        ClientInfoPageDAO dao = new ClientInfoPageDAO();
+        dao.populateClientInfo(nameField, emailField, passwordField, dateField, statutField, userId);
     }
 
-    private void populateClientInfo() {
-        try {
-            // Connexion à la base de données
-            Connection connection = DatabaseConnection.getConnection();
-            // Requête SQL pour récupérer les informations de l'utilisateur à partir de l'ID
-            String query = "SELECT name, email, password, inscription_date, status_user FROM UTILISATEUR WHERE id_user = ?";
-
-            // Préparation de la requête
-            PreparedStatement preparedStatement = connection.prepareStatement(query);
-            preparedStatement.setInt(1, userId);
-
-            // Exécution de la requête
-            ResultSet resultSet = preparedStatement.executeQuery();
-
-            // Traitement des résultats de la requête
-            if (resultSet.next()) {
-                // Remplissage des champs de texte avec les données récupérées
-                nameField.setText(resultSet.getString("name"));
-                emailField.setText(resultSet.getString("email"));
-                passwordField.setText(resultSet.getString("password"));
-                dateField.setText(resultSet.getString("inscription_date"));
-                statutField.setText(resultSet.getBoolean("status_user") ? "Client" : "Employé");
-            }
-
-            // Fermeture des ressources
-            resultSet.close();
-            preparedStatement.close();
-            connection.close();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
-
-    // Méthode pour mettre à jour les informations du client dans la base de données
-    private void updateClientInfo() {
-        try {
-            // Connexion à la base de données
-            Connection connection = DatabaseConnection.getConnection();
-
-            // Requête SQL pour mettre à jour les informations du client
-            String query = "UPDATE UTILISATEUR SET name = ?, email = ?, password = ?, inscription_date = ?, status_user = ? WHERE id_user = ?";
-
-            // Préparation de la requête
-            PreparedStatement preparedStatement = connection.prepareStatement(query);
-            preparedStatement.setString(1, nameField.getText());
-            preparedStatement.setString(2, emailField.getText());
-            preparedStatement.setString(3, passwordField.getText());
-            preparedStatement.setString(4, dateField.getText());
-            preparedStatement.setBoolean(5, statutField.getText().equalsIgnoreCase("Client")); // Convertir le texte en booléen
-            preparedStatement.setInt(6, userId);
-
-            // Exécution de la requête
-            preparedStatement.executeUpdate();
-
-            // Fermeture des ressources
-            preparedStatement.close();
-            connection.close();
-        } catch (SQLException ex) {
-            ex.printStackTrace();
-        }
-    }
 
     // Méthode pour afficher une alerte (pop-up) avec un message spécifié
     private void showAlert(String message) {

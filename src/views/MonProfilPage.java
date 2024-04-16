@@ -1,4 +1,4 @@
-package com.myapp.ui;
+package views;
 
 import javafx.application.Application;
 import javafx.geometry.Insets;
@@ -11,6 +11,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
+import models.Utilisateur;
 
 public class MonProfilPage extends Application {
 

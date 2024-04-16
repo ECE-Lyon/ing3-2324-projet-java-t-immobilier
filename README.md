@@ -7,7 +7,7 @@
 title: Diagramme de Classes
 ---
 classDiagram
-    class Main {
+    class main.Main {
         + main(args: String[]) void$
     }
 ```

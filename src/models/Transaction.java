@@ -1,4 +1,4 @@
-package com.myapp.ui;
+package models;
 
 import javafx.beans.property.*;
 

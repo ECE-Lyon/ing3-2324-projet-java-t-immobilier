@@ -1,6 +1,7 @@
-package com.myapp.ui;
+package views;
 
-
+import models.Utilisateur;
+import controllers.LoginController;
 import javafx.application.Application;
 import javafx.geometry.*;
 import javafx.scene.Scene;
@@ -11,26 +12,19 @@ import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import javafx.util.Pair;
-import java.sql.Date;
 
-
-import java.sql.*;
+import java.sql.SQLException;
 
 public class LoginInterface extends Application {
 
-    private Connection connection;
+    private LoginController loginController;
 
     @Override
     public void start(Stage primaryStage) {
         primaryStage.setTitle("Sign Up");
 
-        // Connexion à la base de données
-        try {
-            // Utilisation de la classe DatabaseConnection pour établir la connexion
-            connection = DatabaseConnection.getConnection();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+        // Création du contrôleur
+        loginController = new LoginController();
 
         // Conteneur principal avec une grille pour organiser les éléments
         GridPane root = new GridPane();
@@ -71,7 +65,6 @@ public class LoginInterface extends Application {
         form.setHgap(10);
         form.setVgap(10);
 
-
         TextField emailField = new TextField();
         emailField.setPromptText("Email");
 
@@ -100,14 +93,14 @@ public class LoginInterface extends Application {
         primaryStage.setScene(scene);
         primaryStage.show();
 
-        // Gestionnaire d'événements pour le bouton de connexion
+        // Associer les événements aux actions du contrôleur
         signUpButton.setOnAction(event -> {
             String email = emailField.getText();
             String password = passwordField.getText();
             try {
-                boolean authenticated = verifyConnection(email, password);
+                boolean authenticated = loginController.verifyConnection(email, password);
                 if (authenticated) {
-                    Utilisateur user = getUserByEmail(email);
+                    Utilisateur user = loginController.getUserByEmail(email);
                     Utilisateur.setCurrentUser(user);
                     Stage stage = (Stage) signUpButton.getScene().getWindow();
                     ModernUIApp.launchApp(stage);
@@ -169,7 +162,7 @@ public class LoginInterface extends Application {
                 String email = result.getKey();
                 String password = result.getValue();
                 try {
-                    boolean created = createUser(email, password);
+                    boolean created = loginController.createUser(email, password);
                     if (created) {
                         showAlert(Alert.AlertType.INFORMATION, "Création réussie", "Votre compte a été créé avec succès !");
                     } else {
@@ -183,58 +176,10 @@ public class LoginInterface extends Application {
         });
     }
 
-    private Utilisateur getUserByEmail(String email) throws SQLException {
-        String query = "SELECT * FROM UTILISATEUR WHERE email = ?";
-        try (PreparedStatement statement = connection.prepareStatement(query)) {
-            statement.setString(1, email);
-            ResultSet resultSet = statement.executeQuery();
-            if (resultSet.next()) {
-                int id = resultSet.getInt("id_user");
-                String userEmail = resultSet.getString("email");
-                String password = resultSet.getString("password");
-                Date inscriptionDate = resultSet.getDate("inscription_date");
-                String userName = resultSet.getString("name");
-                boolean status = resultSet.getBoolean("status_user");
-                return new Utilisateur(id, userEmail, password, inscriptionDate, userName, status);
-            } else {
-                return null;
-            }
-        }
-    }
-
-
-    // Méthode pour vérifier l'authentification de l'utilisateur
-    private boolean verifyConnection(String email, String password) throws SQLException {
-        String query = "SELECT * FROM UTILISATEUR WHERE email = ? AND password = ?";
-        try (PreparedStatement statement = connection.prepareStatement(query)) {
-            statement.setString(1, email);
-            statement.setString(2, password);
-            ResultSet resultSet = statement.executeQuery();
-            return resultSet.next(); // Renvoie vrai si un utilisateur correspond aux informations fournies
-        }
-    }
-
-    // Méthode pour créer un utilisateur dans la base de données
-    private boolean createUser(String email, String password) throws SQLException {
-        String query = "INSERT INTO UTILISATEUR (email, password, inscription_date, name, status_user) VALUES (?, ?, ?, ?, ?)";
-        try (PreparedStatement statement = connection.prepareStatement(query)) {
-            statement.setString(1, email);
-            statement.setString(2, password);
-            statement.setDate(3, new java.sql.Date(System.currentTimeMillis())); // Date du jour
-            statement.setString(4, email); // Nom mis comme l'email
-            statement.setBoolean(5, false); // Statut initial à 0
-            // Exécution de la requête
-            int rowsInserted = statement.executeUpdate();
-            return rowsInserted > 0;
-        }
-    }
-
-    // Méthode pour afficher une boîte de dialogue d'alerte
-    private void showAlert(Alert.AlertType type, String title, String message) {
-        Alert alert = new Alert(type);
+    private void showAlert(Alert.AlertType alertType, String title, String content) {
+        Alert alert = new Alert(alertType);
         alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(message);
+        alert.setContentText(content);
         alert.showAndWait();
     }
 

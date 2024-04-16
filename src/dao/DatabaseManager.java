@@ -1,4 +1,6 @@
-package com.myapp.ui;
+package dao;
+
+import models.Utilisateur;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;

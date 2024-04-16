@@ -1,5 +1,6 @@
-package com.myapp.ui;
+package views;
 
+import dao.DatabaseConnection;
 import javafx.application.Application;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -8,6 +9,8 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import models.Transaction;
+import models.Utilisateur;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -61,9 +64,10 @@ public class HistoriquePage extends Application {
                     "SELECT p.id_property, p.description, p.price, v.date_visit " +
                             "FROM PROPERTY p " +
                             "JOIN VISIT v ON p.id_visit = v.id_visit " +
-                            "JOIN CLIENT c ON p.id_client = c.id_client " +
+                            "JOIN CLIENT c ON (p.id_buyer = c.id_client OR p.id_seller = c.id_client) " +
                             "WHERE c.id_user = ?"
             );
+
             statement.setInt(1, client.getId());
             ResultSet resultSet = statement.executeQuery();
 
