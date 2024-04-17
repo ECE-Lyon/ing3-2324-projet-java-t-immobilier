@@ -1,8 +1,9 @@
 package views;
 
+import models.Property;
 import models.Utilisateur;
 
-import dao.DatabaseConnection;
+import dao.PropertyDAO;
 import javafx.animation.Animation;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
@@ -29,23 +30,8 @@ import java.util.List;
 
 
 public class ModernUIApp extends Application {
-    public ObservableList<String> getCitiesFromDatabase() {
-        ObservableList<String> cities = FXCollections.observableArrayList();
-
-        String query = "SELECT city FROM ADDRESS"; // Requête SQL pour récupérer les villes
-
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(query);
-             ResultSet resultSet = stmt.executeQuery()) {
-
-            while (resultSet.next()) {
-                cities.add(resultSet.getString("city")); // Ajoute chaque ville à la liste
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return cities;
-    }
+    private final PropertyDAO propertyDAO = new PropertyDAO();
+    private Scene scene;
 
     @Override
     public void start(Stage primaryStage) {
@@ -101,8 +87,6 @@ public class ModernUIApp extends Application {
             monProfilPage.start(profileStage);
         });
 
-
-
         // Layout pour la MenuBar et l'icône de profil
         HBox menuContainer = new HBox(menuBar, profileButton);
         menuContainer.setAlignment(Pos.CENTER_LEFT);
@@ -125,7 +109,7 @@ public class ModernUIApp extends Application {
         root.setCenter(imageContainer);
 
         // Barre de recherche au bas du carrousel
-        HBox searchBox = createSearchBox();
+        HBox searchBox = createSearchBox(primaryStage);
         imageContainer.getChildren().add(searchBox);
         StackPane.setAlignment(searchBox, Pos.BOTTOM_CENTER);
 
@@ -137,7 +121,7 @@ public class ModernUIApp extends Application {
         root.setCenter(vbox);
 
         // Définir la largeur du carrousel et mettre à jour la largeur de l'image view
-        Scene scene = new Scene(root, 1920, 1080);
+        scene = new Scene(root, 1920, 1080);
         scene.widthProperty().addListener((observable, oldValue, newValue) -> {
             customCarousel.setPrefWidth(newValue.doubleValue());
             customCarousel.updateImageViewWidth();
@@ -162,30 +146,41 @@ public class ModernUIApp extends Application {
         menuContainer.getChildren().add(userLabel);
     }
 
-    private HBox createSearchBox() {
+    private HBox createSearchBox(Stage primaryStage) {
         HBox searchBox = new HBox(10);
         searchBox.setAlignment(Pos.CENTER);
         searchBox.setPadding(new Insets(15));
         searchBox.setStyle("-fx-background-color: rgba(176,165,165,0.43); -fx-background-radius: 5;");
 
         ComboBox<String> comboBoxCity = new ComboBox<>();
-        comboBoxCity.setItems(getCitiesFromDatabase());
+        comboBoxCity.setItems(propertyDAO.getDistinctValues("city", "ADDRESS"));
         comboBoxCity.setPromptText("Ville");
 
         ComboBox<String> comboBoxBuyRent = new ComboBox<>();
-        comboBoxBuyRent.getItems().addAll("Acheter", "Louer");
-        comboBoxBuyRent.setPromptText("Type d'achat");
+        comboBoxBuyRent.setItems(propertyDAO.getDistinctValues("property_type", "PROPERTY"));
+        comboBoxBuyRent.setPromptText("Type de propriété");
 
-        TextField textFieldPropertyType = new TextField();
-        textFieldPropertyType.setPromptText("Type de bien");
+        TextField textFieldPrice = new TextField();
+        textFieldPrice.setPromptText("Prix maximum");
 
-        TextField textFieldBudget = new TextField();
-        textFieldBudget.setPromptText("Budget");
+        // Ajout de la fonctionnalité de fourchette de taille
+        TextField textFieldSize = new TextField();
+        textFieldSize.setPromptText("Taille maximum");
 
         Button buttonSearch = new Button("Rechercher");
         buttonSearch.setStyle("-fx-background-color: darkblue; -fx-text-fill: white;");
 
-        searchBox.getChildren().addAll(comboBoxCity, comboBoxBuyRent, textFieldPropertyType, textFieldBudget, buttonSearch);
+        searchBox.getChildren().addAll(comboBoxCity, comboBoxBuyRent, textFieldPrice, textFieldSize, buttonSearch);
+        buttonSearch.setOnAction(event -> {
+            String city = comboBoxCity.getValue();
+            String propertyType = comboBoxBuyRent.getValue();
+            double maxPrice = Double.parseDouble(textFieldPrice.getText().isEmpty() ? "0" : textFieldPrice.getText());
+            double maxSize = Double.parseDouble(textFieldSize.getText().isEmpty() ? "0" : textFieldSize.getText());
+
+            // Passer les informations récupérées à ImmobilierPage
+            ImmobilierPage immobilierPage = new ImmobilierPage(city, propertyType, maxPrice, maxSize, false, false);
+            immobilierPage.start(primaryStage);
+        });
 
         return searchBox;
     }
@@ -204,11 +199,11 @@ public class ModernUIApp extends Application {
     public static void main(String[] args) {
         launch(args);
     }
+
     public static void launchApp(Stage stage) {
         ModernUIApp app = new ModernUIApp();
         app.start(stage);
     }
-
 }
 
 class CarouselWithTimeline extends StackPane {

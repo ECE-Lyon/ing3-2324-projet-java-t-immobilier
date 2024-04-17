@@ -11,12 +11,33 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
+import models.Property;
+import dao.PropertyDAO;
+
+import java.util.List;
 
 public class ImmobilierPage extends Application {
+    private final PropertyDAO propertyDAO = new PropertyDAO();
+
     private static final double CARD_WIDTH = 400.0;
+    private final String city;
+    private final String propertyType;
+    private final double budget;
+    private final double size;
+    private final boolean hasPool;
+    private final boolean hasGarden;
+    public ImmobilierPage(String city, String propertyType, double budget, double size, boolean hasPool, boolean hasGarden) {
+        this.city = city;
+        this.propertyType = propertyType;
+        this.budget = budget;
+        this.size = size;
+        this.hasPool = hasPool;
+        this.hasGarden = hasGarden;
+    }
 
     @Override
     public void start(Stage primaryStage) {
+
         // Logo de l'agence
         ImageView logo = new ImageView(new Image(getClass().getResourceAsStream("/ece_immo.jpeg")));
         logo.setFitWidth(120);
@@ -89,13 +110,18 @@ public class ImmobilierPage extends Application {
         annoncesGrid.setAlignment(Pos.CENTER);
         annoncesGrid.setPadding(new Insets(25, 25, 25, 25));
 
+        List<Property> properties = propertyDAO.searchProperties(city, propertyType, budget, size, hasPool, hasGarden);
         // Création des annonces
-        int numCols = 3; // Nombre de colonnes
-        int numRows = 4; // Nombre de lignes (selon le besoin)
+        int numCols = 3;
+        int numRows = (int) Math.ceil(properties.size() / (double) numCols);
         for (int i = 0; i < numRows; i++) {
             for (int j = 0; j < numCols; j++) {
-                VBox annonce = createAnnonce("Villa Porto-Vecchio", "5 pièces - 4 chambres - 145m²", "/image2.jpeg");
-                annoncesGrid.add(annonce, j, i); // Ajoutez les annonces à la grille
+                int index = i * numCols + j;
+                if (index < properties.size()) {
+                    Property property = properties.get(index);
+                    VBox annonce = createAnnonce(property);
+                    annoncesGrid.add(annonce, j, i);
+                }
             }
         }
 
@@ -122,23 +148,23 @@ public class ImmobilierPage extends Application {
         primaryStage.show();
     }
 
-    private VBox createAnnonce(String title, String details, String imagePath) {
+    private VBox createAnnonce(Property property) {
         VBox annonceBox = new VBox(10);
         annonceBox.setPadding(new Insets(15));
         annonceBox.setStyle("-fx-background-color: #ffffff; -fx-border-color: #c0c0c0;");
         annonceBox.setAlignment(Pos.CENTER_LEFT);
 
-        Image image = new Image(getClass().getResourceAsStream(imagePath));
+        Image image = new Image(getClass().getResourceAsStream(property.getImagePath()));
         double imageWidth = CARD_WIDTH - 30; // Soustrayez la valeur de padding pour maintenir la largeur de la carte
         double imageHeight = imageWidth * (image.getHeight() / image.getWidth());
         ImageView imageView = new ImageView(image);
         imageView.setFitWidth(imageWidth);
         imageView.setFitHeight(imageHeight);
 
-        Label titleLabel = new Label(title);
+        Label titleLabel = new Label(property.getTitle());
         titleLabel.setFont(Font.font("Arial", 20));
 
-        Label detailsLabel = new Label(details);
+        Label detailsLabel = new Label(property.getDescription() + " | Size: " + property.getSize() + " | Price: " + property.getPrice() + " | Rooms: " + property.getNumberOfRooms());
         detailsLabel.setFont(Font.font("Arial", 16));
 
         Button visitButton = new Button("Programmer une visite");
@@ -148,6 +174,7 @@ public class ImmobilierPage extends Application {
 
         return annonceBox;
     }
+
 
     public static void main(String[] args) {
         launch(args);
