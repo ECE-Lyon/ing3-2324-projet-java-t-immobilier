@@ -1,11 +1,12 @@
 package main;
 
-import java.sql.SQLException;
-
 import javafx.application.Application;
-
+import javafx.stage.Stage;
+import views.LoginInterface;
 
 public class Main {
-    public static void main(String[] args) throws SQLException {
+    public static void main(String[] args) {
+        // Lancer l'interface de connexion
+        Application.launch(LoginInterface.class, args);
     }
 }

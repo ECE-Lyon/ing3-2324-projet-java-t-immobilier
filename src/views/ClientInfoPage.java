@@ -14,8 +14,6 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
 
-import java.sql.*;
-
 public class ClientInfoPage extends Application {
 
     private boolean isEditable = false; // Pour suivre l'état d'édition

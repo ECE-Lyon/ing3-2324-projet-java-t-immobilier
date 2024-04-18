@@ -1,6 +1,5 @@
 package views;
 
-import models.Property;
 import models.Utilisateur;
 
 import dao.PropertyDAO;
@@ -10,8 +9,6 @@ import javafx.animation.Timeline;
 import javafx.application.Application;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -24,7 +21,6 @@ import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
-import java.sql.*;
 import java.util.Date;
 import java.util.List;
 
@@ -64,8 +60,22 @@ public class ModernUIApp extends Application {
         Menu menuArtDeVivre = new Menu("Art de Vivre");
         menuArtDeVivre.getItems().addAll(new MenuItem("Culture"), new MenuItem("Gastronomie"), new MenuItem("Voyages"));
         Menu menuServices = new Menu("Services");
-        menuServices.getItems().addAll(new MenuItem("Conseils"), new MenuItem("Estimations"), new MenuItem("Financements"));
+        MenuItem rentalCarMenuItem = new MenuItem("Location Automobile");
+        MenuItem rentalCinemaMenuItem = new MenuItem("Location Film au cinéma");
+
+        menuServices.getItems().addAll(rentalCarMenuItem, rentalCinemaMenuItem, new MenuItem("Financements"));
         menuBar.getMenus().addAll(menuImmobilier, menuArtDeVivre, menuServices);
+
+        rentalCarMenuItem.setOnAction(event -> {
+            Stage rentalCarAgencyStage = new Stage();
+            RentalCarAgency rentalCarAgency = new RentalCarAgency();
+            rentalCarAgency.start(rentalCarAgencyStage);
+        });
+        rentalCinemaMenuItem.setOnAction(event -> {
+            Stage rentalCinemaAgencyStage = new Stage();
+            RentalCinemaAgency rentalCinemaAgency = new RentalCinemaAgency();
+            rentalCinemaAgency.start(rentalCinemaAgencyStage);
+        });
 
         // Icône de profil à droite
         ImageView profileIcon = new ImageView(new Image(getClass().getResourceAsStream("/icon.jpg")));
