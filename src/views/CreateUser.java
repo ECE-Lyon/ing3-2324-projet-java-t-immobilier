@@ -1,6 +1,6 @@
 package views;
 
-
+import controllers.LoginController;
 import javafx.application.Application;
 import javafx.geometry.*;
 import javafx.scene.Scene;
@@ -8,16 +8,22 @@ import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
-import javafx.scene.paint.Color;
-import javafx.scene.text.Font;
-import javafx.scene.text.Text;
 import javafx.stage.Stage;
+import models.Utilisateur;
 
-public class Test extends Application {
+import java.sql.SQLException;
+
+public class CreateUser extends Application {
+
+    private LoginController loginController;
+    private boolean accountCreated = false; // Indique si le compte a été créé
 
     @Override
     public void start(Stage primaryStage) {
         primaryStage.setTitle("Créer un compte");
+
+        // Création du contrôleur
+        loginController = new LoginController();
 
         // Conteneur principal avec une grille pour organiser les éléments
         GridPane root = new GridPane();
@@ -77,11 +83,19 @@ public class Test extends Application {
         createAccountButton.setStyle("-fx-background-color: rgb(213, 119, 195); -fx-text-fill: white;");
         createAccountButton.setMaxWidth(Double.MAX_VALUE);
 
+        Button loginButton = new Button("Login");
+        loginButton.setStyle("-fx-background-color: #2289dd; -fx-text-fill: white;");
+        loginButton.setMaxWidth(Double.MAX_VALUE);
+        loginButton.setDisable(true); // Désactiver le bouton Login initialement
+
         // Ajout des éléments au formulaire
         form.add(emailField, 0, 0);
         form.add(passwordField, 0, 1);
         form.add(createAccountButton, 0, 2);
+        form.add(loginButton, 0, 3); // Ajout du bouton login
+
         GridPane.setHalignment(createAccountButton, HPos.RIGHT);
+        GridPane.setHalignment(loginButton, HPos.RIGHT);
 
         // Ajout des éléments au conteneur du formulaire
         formLayout.getChildren().addAll(title, subtitle, form);
@@ -93,6 +107,52 @@ public class Test extends Application {
         Scene scene = new Scene(root, 1000, 600); // Taille de la scène ajustée selon vos besoins
         primaryStage.setScene(scene);
         primaryStage.show();
+
+        // Associer les événements aux actions du contrôleur pour le bouton "Login"
+        loginButton.setOnAction(event -> {
+            String email = emailField.getText();
+            String password = passwordField.getText();
+            try {
+                boolean authenticated = loginController.verifyConnection(email, password);
+                if (authenticated) {
+                    Utilisateur user = loginController.getUserByEmail(email);
+                    Utilisateur.setCurrentUser(user);
+                    Stage stage = (Stage) loginButton.getScene().getWindow();
+                    ModernUIApp.launchApp(stage);
+                } else {
+                    showAlert(Alert.AlertType.ERROR, "Erreur de connexion", "Identifiant ou mot de passe incorrect.");
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+                showAlert(Alert.AlertType.ERROR, "Erreur de connexion", "Une erreur est survenue lors de la connexion à la base de données.");
+            }
+        });
+
+        // Associer les événements aux actions du contrôleur pour le bouton "Créer un compte"
+        createAccountButton.setOnAction(event -> {
+            String email = emailField.getText();
+            String password = passwordField.getText();
+            try {
+                boolean created = loginController.createUser(email, password);
+                if (created) {
+                    showAlert(Alert.AlertType.INFORMATION, "Compte créé", "Votre compte a été créé avec succès !");
+                    // Activer le bouton Login une fois que le compte est créé
+                    loginButton.setDisable(false);
+                } else {
+                    showAlert(Alert.AlertType.ERROR, "Erreur de création", "Impossible de créer le compte. Veuillez réessayer.");
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+                showAlert(Alert.AlertType.ERROR, "Erreur de création", "Une erreur est survenue lors de la création du compte.");
+            }
+        });
+    }
+
+    private void showAlert(Alert.AlertType alertType, String title, String content) {
+        Alert alert = new Alert(alertType);
+        alert.setTitle(title);
+        alert.setContentText(content);
+        alert.showAndWait();
     }
 
     public static void main(String[] args) {

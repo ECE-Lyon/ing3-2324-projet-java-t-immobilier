@@ -25,74 +25,7 @@ public class LoginController {
         }
     }
 
-    public void handleSignUp(String email, String password) {
-        try {
-            boolean authenticated = verifyConnection(email, password);
-            if (authenticated) {
-                Utilisateur user = getUserByEmail(email);
-                Utilisateur.setCurrentUser(user);
-                // Remplacez ModernUIApp.launchApp(stage); par le code pour afficher votre interface après la connexion réussie
-            } else {
-                showAlert(Alert.AlertType.ERROR, "Erreur de connexion", "Identifiant ou mot de passe incorrect.");
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-            showAlert(Alert.AlertType.ERROR, "Erreur de connexion", "Une erreur est survenue lors de la connexion à la base de données.");
-        }
-    }
-
-    public void handleLoginLink() {
-        Dialog<Pair<String, String>> dialog = new Dialog<>();
-        dialog.setTitle("Créer un compte");
-        dialog.setHeaderText("Entrez votre adresse e-mail et votre mot de passe :");
-
-        // Boutons pour confirmer ou annuler la création de compte
-        ButtonType createButtonType = new ButtonType("Créer", ButtonBar.ButtonData.OK_DONE);
-        dialog.getDialogPane().getButtonTypes().addAll(createButtonType, ButtonType.CANCEL);
-
-        // Création des champs de texte pour l'email et le mot de passe
-        TextField emailDialogField = new TextField();
-        emailDialogField.setPromptText("Email");
-
-        PasswordField passwordDialogField = new PasswordField();
-        passwordDialogField.setPromptText("Password");
-
-        // Code pour la configuration de la boîte de dialogue
-        dialog.getDialogPane().setContent(new VBox(8, new Label("Email:"), emailDialogField, new Label("Password:"), passwordDialogField));
-
-        // Activation ou désactivation du bouton de création en fonction de la saisie de l'utilisateur
-        Button createButton = (Button) dialog.getDialogPane().lookupButton(createButtonType);
-        createButton.setDisable(true);
-
-        emailDialogField.textProperty().addListener((observable, oldValue, newValue) -> {
-            createButton.setDisable(newValue.trim().isEmpty());
-        });
-
-        dialog.setResultConverter(dialogButton -> {
-            if (dialogButton == createButtonType) {
-                return new Pair<>(emailDialogField.getText(), passwordDialogField.getText());
-            }
-            return null;
-        });
-
-        dialog.showAndWait().ifPresent(result -> {
-            String email = result.getKey();
-            String password = result.getValue();
-            try {
-                boolean created = createUser(email, password);
-                if (created) {
-                    showAlert(Alert.AlertType.INFORMATION, "Création réussie", "Votre compte a été créé avec succès !");
-                } else {
-                    showAlert(Alert.AlertType.ERROR, "Erreur de création", "Impossible de créer le compte. Veuillez réessayer.");
-                }
-            } catch (SQLException e) {
-                e.printStackTrace();
-                showAlert(Alert.AlertType.ERROR, "Erreur de création", "Une erreur est survenue lors de la création du compte.");
-            }
-        });
-    }
-
-    public Utilisateur getUserByEmail(String email) throws SQLException {
+       public Utilisateur getUserByEmail(String email) throws SQLException {
         String query = "SELECT * FROM UTILISATEUR WHERE email = ?";
         try (PreparedStatement statement = connection.prepareStatement(query)) {
             statement.setString(1, email);
