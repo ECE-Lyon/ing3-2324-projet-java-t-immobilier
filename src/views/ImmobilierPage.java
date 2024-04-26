@@ -237,4 +237,3 @@ public class ImmobilierPage extends Application {
         launch(args);
     }
 }
-}
