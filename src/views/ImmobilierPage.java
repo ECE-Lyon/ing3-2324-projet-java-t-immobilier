@@ -1,6 +1,9 @@
 
 package views;
 
+
+import javafx.animation.ScaleTransition;
+import javafx.animation.TranslateTransition;
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -9,174 +12,229 @@ import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
+import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
+import javafx.scene.text.Text;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
-import models.Property;
-import dao.PropertyDAO;
-
-import java.util.List;
+import javafx.util.Duration;
 
 public class ImmobilierPage extends Application {
-    private final PropertyDAO propertyDAO = new PropertyDAO();
-
-    private static final double CARD_WIDTH = 400.0;
-    private final String city;
-    private final String propertyType;
-    private final double budget;
-    private final double size;
-    private final boolean hasPool;
-    private final boolean hasGarden;
-    public ImmobilierPage(String city, String propertyType, double budget, double size, boolean hasPool, boolean hasGarden) {
-        this.city = city;
-        this.propertyType = propertyType;
-        this.budget = budget;
-        this.size = size;
-        this.hasPool = hasPool;
-        this.hasGarden = hasGarden;
-    }
 
     @Override
     public void start(Stage primaryStage) {
+        primaryStage.setTitle("Propriétés");
+        primaryStage.setFullScreen(true); // Mettre la fenêtre en plein écran
 
-        // Logo de l'agence
-        ImageView logo = new ImageView(new Image(getClass().getResourceAsStream("/ece_immo.jpeg")));
-        logo.setFitWidth(120);
-        logo.setPreserveRatio(true);
+        // Conteneur principal avec une grille pour organiser les éléments
+        GridPane root = new GridPane();
+        root.setAlignment(Pos.TOP_CENTER);
+        root.setHgap(20);
+        root.setVgap(20);
+        root.setPadding(new Insets(20));
+        root.setBackground(new Background(new BackgroundFill(Color.WHITE, CornerRadii.EMPTY, Insets.EMPTY)));
 
-        // MenuBar avec fond blanc et éléments agrandis
-        MenuBar menuBar = new MenuBar();
-        menuBar.setStyle("-fx-background-color: white; -fx-font-size: 18px; -fx-padding: 15px 0; -fx-border-color: #f6f6f6; -fx-border-width: 0 0 1 0;");
+        // Logo de l'agence en haut de la page
+        ImageView logoView = new ImageView(new Image("ece_immo.jpeg"));
+        logoView.setFitWidth(200); // Ajustez la largeur du logo selon vos besoins
+        logoView.setPreserveRatio(true);
 
-        // Menus avec items déroulants
-        Menu menuImmobilier = new Menu("Immobilier");
-        menuImmobilier.getItems().addAll(new MenuItem("Acheter"), new MenuItem("Vendre"), new MenuItem("Louer"));
-        Menu menuArtDeVivre = new Menu("Art de Vivre");
-        menuArtDeVivre.getItems().addAll(new MenuItem("Culture"), new MenuItem("Gastronomie"), new MenuItem("Voyages"));
-        Menu menuServices = new Menu("Services");
-        menuServices.getItems().addAll(new MenuItem("Conseils"), new MenuItem("Estimations"), new MenuItem("Financements"));
-        menuBar.getMenus().addAll(menuImmobilier, menuArtDeVivre, menuServices);
+        // Centrer le logo horizontalement
+        HBox logoContainer = new HBox();
+        logoContainer.getChildren().add(logoView);
+        logoContainer.setAlignment(Pos.CENTER); // Centrer horizontalement
 
-        // Icône de profil à droite
-        ImageView profileIcon = new ImageView(new Image(getClass().getResourceAsStream("/icon.jpg")));
-        profileIcon.setFitWidth(30);
-        profileIcon.setFitHeight(30);
-        Button profileButton = new Button("", profileIcon);
-        profileButton.setStyle("-fx-background-color: transparent;");
+        // Titre de la page avec le bouton "Afficher les filtres"
+        Label title = new Label("");
+        title.setFont(Font.font("Arial", 28));
+        title.setTextFill(Color.valueOf("#333333"));
 
-        // HBox pour organiser le logo, les menus et l'icône de profil
-        HBox logoMenuBarBox = new HBox(10);
-        logoMenuBarBox.setStyle("-fx-background-color: WHITE;");
-        logoMenuBarBox.setPadding(new Insets(15));
-        logoMenuBarBox.setAlignment(Pos.CENTER);
-        logoMenuBarBox.getChildren().addAll(logo, menuBar, profileButton);
-        HBox.setHgrow(menuBar, Priority.ALWAYS); // Permet à la barre de menu de prendre autant d'espace horizontal que possible
+        Button filtersButton = new Button("Afficher les filtres");
+        filtersButton.setStyle("-fx-background-color: rgb(213, 119, 195); -fx-text-fill: white; -fx-font-weight: bold;");
+        addHoverAnimation(filtersButton); // Ajouter une animation au survol
+        filtersButton.setOnAction(event -> showFiltersPopup(primaryStage)); // Afficher le pop-up des filtres lors du clic
+        HBox titleContainer = new HBox(title, filtersButton);
+        titleContainer.setAlignment(Pos.CENTER_RIGHT);
+        titleContainer.setSpacing(10);
 
-        // New Filters to match the image
-        ChoiceBox<String> transactionTypeChoiceBox = new ChoiceBox<>();
-        transactionTypeChoiceBox.getItems().addAll("Acheter", "Louer", "Viager");
-        transactionTypeChoiceBox.setValue("Acheter");
+        // Conteneur pour les propriétés avec une barre de défilement
+        ScrollPane scrollPane = new ScrollPane();
+        VBox propertiesContainer = new VBox();
+        propertiesContainer.setAlignment(Pos.TOP_CENTER);
+        propertiesContainer.setSpacing(20);
+        scrollPane.setContent(propertiesContainer);
+        scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        scrollPane.setStyle("-fx-background-color: transparent;");
 
-        ChoiceBox<String> propertyTypeChoiceBox = new ChoiceBox<>();
-        propertyTypeChoiceBox.getItems().addAll("Appartement", "Maison", "Terrain", "Commerce", "Bureau");
-        propertyTypeChoiceBox.setValue("Types de bien");
-
-        TextField budgetTextField = new TextField();
-        budgetTextField.setPromptText("Budget");
-
-        TextField bedroomsTextField = new TextField();
-        bedroomsTextField.setPromptText("Chambres");
-
-        TextField areaTextField = new TextField();
-        areaTextField.setPromptText("Surface");
-
-        Button advancedSearchButton = new Button("Recherche avancée");
-        advancedSearchButton.setStyle("-fx-background-color: rgb(213, 119, 195); -fx-text-fill: white;");
-
-        // HBox for filters
-        HBox filtersBox = new HBox(10, transactionTypeChoiceBox, propertyTypeChoiceBox, budgetTextField, bedroomsTextField, areaTextField, advancedSearchButton);
-        filtersBox.setAlignment(Pos.CENTER);
-        filtersBox.setSpacing(5);
-
-        // VBox pour organiser le contenu du haut (logo, menus, filtres)
-        VBox topContent = new VBox(logoMenuBarBox, filtersBox);
-        topContent.setAlignment(Pos.CENTER);
-        topContent.setSpacing(10);
-        topContent.setPadding(new Insets(10));
-
-        // GridPane pour les annonces
-        GridPane annoncesGrid = new GridPane();
-        annoncesGrid.setHgap(20); // Espacement horizontal entre les cartes
-        annoncesGrid.setVgap(20); // Espacement vertical entre les cartes
-        annoncesGrid.setAlignment(Pos.CENTER);
-        annoncesGrid.setPadding(new Insets(25, 25, 25, 25));
-
-        List<Property> properties = propertyDAO.searchProperties(city, propertyType, budget, size, hasPool, hasGarden);
-        // Création des annonces
-        int numCols = 3;
-        int numRows = (int) Math.ceil(properties.size() / (double) numCols);
-        for (int i = 0; i < numRows; i++) {
-            for (int j = 0; j < numCols; j++) {
-                int index = i * numCols + j;
-                if (index < properties.size()) {
-                    Property property = properties.get(index);
-                    VBox annonce = createAnnonce(property);
-                    annoncesGrid.add(annonce, j, i);
-                }
-            }
+        // Exemple de propriétés (à remplacer par des données dynamiques)
+        for (int i = 0; i < 10; i++) {
+            VBox property = createProperty("Villa Vue Mer Collines Cannes", "$2,500,000", "Cannes, France", "image1.jpg", "Dans les douces collines de Cannes, surplombant la Méditerranée, se dresse majestueusement une villa de luxe, symbole d'opulence et de raffinement. Les portes en bois massif s'ouvrent sur un hall d'entrée orné de marbre italien, où la lumière naturelle danse à travers des vitraux colorés. Un escalier en spirale, avec une rampe en fer forgé finement ciselée, mène aux étages supérieurs. Les pièces sont des œuvres d'art en elles-mêmes, avec des plafonds voûtés ornés de fresques murales, des lustres en cristal étincelants et des sols en parquet de chêne poli à la perfection... Les fenêtres panoramiques offrent des vues imprenables sur la mer scintillante et les jardins luxuriants qui entourent la propriété...");
+            property.prefWidthProperty().bind(root.widthProperty().subtract(40)); // Largeur relative au GridPane
+            propertiesContainer.getChildren().add(property);
         }
 
-        // ScrollPane pour les annonces
-        ScrollPane scrollPane = new ScrollPane(annoncesGrid);
-        scrollPane.setFitToWidth(true);
+        // Ajout des éléments à la grille principale
+        root.add(logoContainer, 0, 0);
+        root.add(titleContainer, 0, 1);
+        root.add(scrollPane, 0, 2);
 
-        // BorderPane pour organiser le contenu
-        BorderPane root = new BorderPane();
-        root.setTop(topContent);
-        root.setCenter(scrollPane);
-
-        // Search button
-        Button searchButton = new Button("Rechercher");
-        searchButton.setStyle("-fx-background-color: rgb(213, 119, 195); -fx-text-fill: white;");
-        root.setBottom(searchButton);
-        BorderPane.setAlignment(searchButton, Pos.CENTER);
-        BorderPane.setMargin(searchButton, new Insets(10));
-
-        // Affichage de la scène
-        Scene scene = new Scene(root, 1024, 768); // Taille par défaut, peut être ajustée ou mise en plein écran
+        // Configuration de la scène
+        Scene scene = new Scene(root);
         primaryStage.setScene(scene);
-        primaryStage.setTitle("Liste des propriétés immobilières");
         primaryStage.show();
     }
 
-    private VBox createAnnonce(Property property) {
-        VBox annonceBox = new VBox(10);
-        annonceBox.setPadding(new Insets(15));
-        annonceBox.setStyle("-fx-background-color: #ffffff; -fx-border-color: #c0c0c0;");
-        annonceBox.setAlignment(Pos.CENTER_LEFT);
+    // Créer un conteneur pour une propriété avec une mise en forme spécifique
+    private VBox createProperty(String name, String price, String location, String imageUrl, String description) {
+        VBox propertyContainer = new VBox();
+        propertyContainer.setAlignment(Pos.CENTER_LEFT);
+        propertyContainer.setSpacing(10);
+        propertyContainer.setPadding(new Insets(10));
+        propertyContainer.setStyle("-fx-background-color: #ffffff; -fx-border-color: #ccc; -fx-border-width: 1px;");
 
-        Image image = new Image(getClass().getResourceAsStream(property.getImagePath()));
-        double imageWidth = CARD_WIDTH - 30; // Soustrayez la valeur de padding pour maintenir la largeur de la carte
-        double imageHeight = imageWidth * (image.getHeight() / image.getWidth());
-        ImageView imageView = new ImageView(image);
-        imageView.setFitWidth(imageWidth);
-        imageView.setFitHeight(imageHeight);
+        Label nameLabel = new Label(name);
+        nameLabel.setFont(Font.font("Arial", 16));
+        nameLabel.setTextFill(Color.valueOf("#333333"));
 
-        Label titleLabel = new Label(property.getTitle());
-        titleLabel.setFont(Font.font("Arial", 20));
+        Label priceLabel = new Label("Prix : " + price);
+        priceLabel.setFont(Font.font("Arial", 14));
+        priceLabel.setTextFill(Color.valueOf("#666666"));
 
-        Label detailsLabel = new Label(property.getDescription() + " | Size: " + property.getSize() + " | Price: " + property.getPrice() + " | Rooms: " + property.getNumberOfRooms());
-        detailsLabel.setFont(Font.font("Arial", 16));
+        Label locationLabel = new Label("Emplacement : " + location);
+        locationLabel.setFont(Font.font("Arial", 14));
+        locationLabel.setTextFill(Color.valueOf("#666666"));
 
-        Button visitButton = new Button("Programmer une visite");
-        visitButton.setStyle("-fx-background-color: rgb(213, 119, 195); -fx-text-fill: white;");
+        ImageView imageView = new ImageView(new Image(imageUrl));
+        imageView.setPreserveRatio(true);
+        imageView.setFitWidth(800); // Largeur de l'image fixe
+        imageView.setFitHeight(600); // Hauteur de l'image fixe
 
-        annonceBox.getChildren().addAll(imageView, titleLabel, detailsLabel, visitButton);
+        // Bouton "Réserver une visite" au centre de l'image
+        Button viewMoreButton = new Button("Réserver une visite");
+        viewMoreButton.setStyle("-fx-background-color: rgb(213, 119, 195); -fx-text-fill: white; -fx-font-weight: bold;");
+        addHoverAnimation(viewMoreButton); // Ajouter une animation au survol
+        VBox.setMargin(viewMoreButton, new Insets(0, 0, 20, 0)); // Marge inférieure pour l'espacement
+        VBox imageContainer = new VBox(imageView, viewMoreButton);
+        imageContainer.setAlignment(Pos.CENTER);
+        imageContainer.setSpacing(10);
 
-        return annonceBox;
+        Text descriptionText = new Text(description);
+        descriptionText.setFont(Font.font("Arial", 14));
+        descriptionText.setFill(Color.valueOf("#777777"));
+        descriptionText.setWrappingWidth(imageView.getFitWidth() - 20); // Largeur de la description
+        descriptionText.setLineSpacing(2); // Espacement entre les lignes
+
+        // Animation de translation sur survol
+        TranslateTransition translateIn = new TranslateTransition(Duration.seconds(0.4), propertyContainer);
+        translateIn.setToX(20);
+
+        TranslateTransition translateOut = new TranslateTransition(Duration.seconds(0.4), propertyContainer);
+        translateOut.setToX(0);
+
+        propertyContainer.setOnMouseEntered(event -> translateIn.play());
+        propertyContainer.setOnMouseExited(event -> translateOut.play());
+
+        HBox contentBox = new HBox();
+        contentBox.setAlignment(Pos.CENTER_LEFT);
+        contentBox.setSpacing(10);
+        contentBox.getChildren().addAll(imageContainer, descriptionText);
+
+        // Ajouter les éléments au conteneur de propriété
+        propertyContainer.getChildren().addAll(nameLabel, priceLabel, locationLabel, contentBox);
+
+        return propertyContainer;
     }
+
+    // Ajouter une animation de mise à l'échelle sur le bouton lorsqu'il est survolé
+    private void addHoverAnimation(Button button) {
+        ScaleTransition scaleIn = new ScaleTransition(Duration.millis(100), button);
+        scaleIn.setToX(1.06); // Augmenter la valeur pour un agrandissement plus prononcé
+        scaleIn.setToY(1.06); // Augmenter la valeur pour un agrandissement plus prononcé
+
+        ScaleTransition scaleOut = new ScaleTransition(Duration.millis(100), button);
+        scaleOut.setToX(1);
+        scaleOut.setToY(1);
+
+        button.setOnMouseEntered(event -> scaleIn.play());
+        button.setOnMouseExited(event -> scaleOut.play());
+    }
+
+    // Afficher le pop-up des filtres
+    private void showFiltersPopup(Stage primaryStage) {
+        Stage filtersStage = new Stage();
+        filtersStage.initModality(Modality.WINDOW_MODAL);
+        filtersStage.initOwner(primaryStage);
+
+        VBox filtersLayout = new VBox();
+        filtersLayout.setSpacing(10);
+        filtersLayout.setPadding(new Insets(20));
+        filtersLayout.setAlignment(Pos.TOP_RIGHT);
+
+        // Filtre par ville
+        Label cityLabel = new Label("Ville:");
+        ComboBox<String> cityComboBox = new ComboBox<>();
+        cityComboBox.getItems().addAll("Paris", "Lyon", "Marseille", "Nice", "Bordeaux");
+        filtersLayout.getChildren().addAll(cityLabel, cityComboBox);
+
+        // Filtre par type de propriété
+        Label propertyTypeLabel = new Label("Type de propriété:");
+        ComboBox<String> propertyTypeComboBox = new ComboBox<>();
+        propertyTypeComboBox.getItems().addAll("Appartement", "Maison", "Villa", "Studio", "Penthouse");
+        filtersLayout.getChildren().addAll(propertyTypeLabel, propertyTypeComboBox);
+
+        // Filtre par prix minimum
+        Label minPriceLabel = new Label("Prix minimum:");
+        TextField minPriceField = new TextField();
+        filtersLayout.getChildren().addAll(minPriceLabel, minPriceField);
+
+        // Filtre par prix maximum
+        Label maxPriceLabel = new Label("Prix maximum:");
+        TextField maxPriceField = new TextField();
+        filtersLayout.getChildren().addAll(maxPriceLabel, maxPriceField);
+
+        HBox buttonsContainer = new HBox();
+        buttonsContainer.setSpacing(10);
+
+        Button applyFiltersButton = new Button("Appliquer les filtres");
+        applyFiltersButton.setStyle("-fx-background-color: rgb(213, 119, 195); -fx-text-fill: white; -fx-font-weight: bold;");
+        applyFiltersButton.setOnAction(event -> {
+            // Récupérer les valeurs des filtres et effectuer le filtrage des propriétés
+            String selectedCity = cityComboBox.getValue();
+            String selectedPropertyType = propertyTypeComboBox.getValue();
+            String minPrice = minPriceField.getText();
+            String maxPrice = maxPriceField.getText();
+
+            // Ajoutez ici la logique pour filtrer les propriétés en fonction des valeurs sélectionnées
+            System.out.println("Filtre par ville: " + selectedCity);
+            System.out.println("Filtre par type de propriété: " + selectedPropertyType);
+            System.out.println("Filtre par prix minimum: " + minPrice);
+            System.out.println("Filtre par prix maximum: " + maxPrice);
+
+            // Fermer la fenêtre des filtres après avoir appliqué les filtres
+            filtersStage.close();
+        });
+
+        Button resetFiltersButton = new Button("Réinitialiser les filtres");
+        resetFiltersButton.setOnAction(event -> {
+            cityComboBox.setValue(null);
+            propertyTypeComboBox.setValue(null);
+            minPriceField.clear();
+            maxPriceField.clear();
+        });
+
+        buttonsContainer.getChildren().addAll(applyFiltersButton, resetFiltersButton);
+        filtersLayout.getChildren().add(buttonsContainer);
+
+        Scene filtersScene = new Scene(filtersLayout);
+        filtersStage.setScene(filtersScene);
+        filtersStage.setTitle("Filtres des propriétés");
+        filtersStage.show();
+    }
+
 
 
     public static void main(String[] args) {
         launch(args);
     }
+}
 }
