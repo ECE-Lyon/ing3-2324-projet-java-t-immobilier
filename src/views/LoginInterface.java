@@ -11,7 +11,6 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
-import javafx.util.Pair;
 
 import java.sql.SQLException;
 
@@ -114,65 +113,14 @@ public class LoginInterface extends Application {
         });
 
         loginLink.setOnAction(event -> {
-            Dialog<Pair<String, String>> dialog = new Dialog<>();
-            dialog.setTitle("Créer un compte");
-            dialog.setHeaderText("Entrez votre adresse e-mail et votre mot de passe :");
-
-            // Boutons pour confirmer ou annuler la création de compte
-            ButtonType createButtonType = new ButtonType("Créer", ButtonBar.ButtonData.OK_DONE);
-            dialog.getDialogPane().getButtonTypes().addAll(createButtonType, ButtonType.CANCEL);
-
-            // Création des champs de texte pour l'email et le mot de passe
-            GridPane dialogContent = new GridPane();
-            dialogContent.setHgap(10);
-            dialogContent.setVgap(10);
-            dialogContent.setPadding(new Insets(20, 150, 10, 10));
-
-            TextField emailDialogField = new TextField();
-            emailDialogField.setPromptText("Email");
-
-            PasswordField passwordDialogField = new PasswordField();
-            passwordDialogField.setPromptText("Password");
-
-            dialogContent.add(new Label("Email:"), 0, 0);
-            dialogContent.add(emailDialogField, 1, 0);
-            dialogContent.add(new Label("Mot de passe:"), 0, 1);
-            dialogContent.add(passwordDialogField, 1, 1);
-
-            dialog.getDialogPane().setContent(dialogContent);
-
-            // Activation ou désactivation du bouton de création en fonction de la saisie de l'utilisateur
-            Button createButton = (Button) dialog.getDialogPane().lookupButton(createButtonType);
-            createButton.setDisable(true);
-
-            emailDialogField.textProperty().addListener((observable, oldValue, newValue) -> {
-                createButton.setDisable(newValue.trim().isEmpty());
-            });
-
-            // Résultat du dialogue lorsque l'utilisateur clique sur "Créer" ou "Annuler"
-            dialog.setResultConverter(dialogButton -> {
-                if (dialogButton == createButtonType) {
-                    return new Pair<>(emailDialogField.getText(), passwordDialogField.getText());
-                }
-                return null;
-            });
-
-            // Affichage de la boîte de dialogue et traitement des résultats
-            dialog.showAndWait().ifPresent(result -> {
-                String email = result.getKey();
-                String password = result.getValue();
-                try {
-                    boolean created = loginController.createUser(email, password);
-                    if (created) {
-                        showAlert(Alert.AlertType.INFORMATION, "Création réussie", "Votre compte a été créé avec succès !");
-                    } else {
-                        showAlert(Alert.AlertType.ERROR, "Erreur de création", "Impossible de créer le compte. Veuillez réessayer.");
-                    }
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                    showAlert(Alert.AlertType.ERROR, "Erreur de création", "Une erreur est survenue lors de la création du compte.");
-                }
-            });
+            // Redirection vers la page Test
+            CreateUser testPage = new CreateUser();
+            Stage testStage = new Stage();
+            try {
+                testPage.start(testStage);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         });
     }
 
