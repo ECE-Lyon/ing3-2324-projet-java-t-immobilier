@@ -1,7 +1,7 @@
 package views;
 
+import models.Property;
 import models.Utilisateur;
-
 import dao.PropertyDAO;
 import javafx.animation.Animation;
 import javafx.animation.KeyFrame;
@@ -24,10 +24,10 @@ import javafx.util.Duration;
 import java.util.Date;
 import java.util.List;
 
-
 public class ModernUIApp extends Application {
     private final PropertyDAO propertyDAO = new PropertyDAO();
     private Scene scene;
+    private VBox vbox;
 
     @Override
     public void start(Stage primaryStage) {
@@ -85,32 +85,23 @@ public class ModernUIApp extends Application {
         profileButton.setStyle("-fx-background-color: transparent;");
         HBox.setMargin(profileButton, new Insets(0, 0, 0, 20));
 
-        // Gestionnaire d'événements pour le clic sur l'icône de profil
-        /*profileButton.setOnAction(event -> {
-            Stage profileStage = new Stage();
-            ClientInfoPage clientInfoPage = new ClientInfoPage(userId); // Passer l'ID de l'utilisateur
-            clientInfoPage.start(profileStage);
-        });*/
         profileButton.setOnAction(event -> {
             Stage profileStage = new Stage();
             MonProfilPage monProfilPage = new MonProfilPage();
             monProfilPage.start(profileStage);
         });
 
-        // Layout pour la MenuBar et l'icône de profil
         HBox menuContainer = new HBox(menuBar, profileButton);
         menuContainer.setAlignment(Pos.CENTER_LEFT);
         HBox.setHgrow(menuBar, Priority.ALWAYS);
         menuContainer.setPadding(new Insets(0, 0, 0, 20));
 
-        // Layout pour le logo, la MenuBar et l'icône de profil
         HBox topBar = new HBox(logo, menuContainer);
         topBar.setAlignment(Pos.CENTER);
         topBar.setSpacing(20);
 
         root.setTop(topBar);
 
-        // Carrousel d'images
         List<String> imagePaths = List.of("/image2.jpeg", "/image3.jpeg", "/image4.jpeg");
         CarouselWithTimeline customCarousel = new CarouselWithTimeline(imagePaths, Duration.seconds(5));
 
@@ -118,19 +109,16 @@ public class ModernUIApp extends Application {
         imageContainer.setStyle("-fx-background-color: white;");
         root.setCenter(imageContainer);
 
-        // Barre de recherche au bas du carrousel
         HBox searchBox = createSearchBox(primaryStage);
         imageContainer.getChildren().add(searchBox);
         StackPane.setAlignment(searchBox, Pos.BOTTOM_CENTER);
 
-        // Ajuster la disposition du BorderPane pour que le carrousel occupe toute la largeur de l'écran
-        VBox vbox = new VBox();
+        vbox = new VBox();
         vbox.setSpacing(20);
         vbox.getChildren().addAll(topBar, imageContainer);
         VBox.setVgrow(imageContainer, Priority.ALWAYS);
         root.setCenter(vbox);
 
-        // Définir la largeur du carrousel et mettre à jour la largeur de l'image view
         scene = new Scene(root, 1920, 1080);
         scene.widthProperty().addListener((observable, oldValue, newValue) -> {
             customCarousel.setPrefWidth(newValue.doubleValue());
@@ -139,18 +127,14 @@ public class ModernUIApp extends Application {
         customCarousel.setPrefSize(scene.getWidth(), 768);
         customCarousel.updateImageViewWidth();
 
-
-        // Pied de page
         HBox footerLayout = createFooter();
         root.setBottom(footerLayout);
 
-        // Configuration et affichage de la scène
         scene.setFill(Color.WHITE);
         primaryStage.setTitle("ECE International Realty - Accueil");
         primaryStage.setScene(scene);
         primaryStage.show();
 
-        // Afficher le nom de l'utilisateur dans la barre de menu ou ailleurs dans l'interface
         Label userLabel = new Label("Connecté en tant que : " + userName);
         userLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: black;");
         menuContainer.getChildren().add(userLabel);
@@ -166,34 +150,50 @@ public class ModernUIApp extends Application {
         comboBoxCity.setItems(propertyDAO.getDistinctValues("city", "ADDRESS"));
         comboBoxCity.setPromptText("Ville");
 
-        ComboBox<String> comboBoxBuyRent = new ComboBox<>();
-        comboBoxBuyRent.setItems(propertyDAO.getDistinctValues("property_type", "PROPERTY"));
-        comboBoxBuyRent.setPromptText("Type de propriété");
-
-        TextField textFieldPrice = new TextField();
-        textFieldPrice.setPromptText("Prix maximum");
-
-        // Ajout de la fonctionnalité de fourchette de taille
-        TextField textFieldSize = new TextField();
-        textFieldSize.setPromptText("Taille maximum");
-
         Button buttonSearch = new Button("Rechercher");
         buttonSearch.setStyle("-fx-background-color: darkblue; -fx-text-fill: white;");
 
-        searchBox.getChildren().addAll(comboBoxCity, comboBoxBuyRent, textFieldPrice, textFieldSize, buttonSearch);
+        searchBox.getChildren().addAll(comboBoxCity, buttonSearch);
         buttonSearch.setOnAction(event -> {
             String city = comboBoxCity.getValue();
-            String propertyType = comboBoxBuyRent.getValue();
-            double maxPrice = Double.parseDouble(textFieldPrice.getText().isEmpty() ? "0" : textFieldPrice.getText());
-            double maxSize = Double.parseDouble(textFieldSize.getText().isEmpty() ? "0" : textFieldSize.getText());
 
-            // Passer les informations récupérées à ImmobilierPage
-            ImmobilierPage immobilierPage = new ImmobilierPage(city, propertyType, maxPrice, maxSize, false, false);
-            immobilierPage.start(primaryStage);
+            if (city != null && !city.isEmpty()) {
+                List<Property> filteredProperties = propertyDAO.searchProperties(city, null, 0, 0, false, false);
+
+                vbox.getChildren().remove(2, vbox.getChildren().size());
+                ListView<Property> propertyListView = new ListView<>();
+                propertyListView.getItems().addAll(filteredProperties);
+                vbox.getChildren().add(propertyListView);
+                VBox.setVgrow(propertyListView, Priority.ALWAYS);
+
+                PropertyFilter propertyFilter = new PropertyFilter();
+                propertyFilter.start(primaryStage);
+            } else {
+                // Gérer le cas où aucune ville n'est sélectionnée
+            }
         });
+
+
+        comboBoxCity.setOnAction(event -> {
+            String city = comboBoxCity.getValue();
+
+            if (city != null && !city.isEmpty()) {
+                List<Property> filteredProperties = propertyDAO.searchProperties(city, null, 0, 0, false, false);
+
+                vbox.getChildren().remove(2, vbox.getChildren().size());
+                ListView<Property> propertyListView = new ListView<>();
+                propertyListView.getItems().addAll(filteredProperties);
+                vbox.getChildren().add(propertyListView);
+                VBox.setVgrow(propertyListView, Priority.ALWAYS);
+            } else {
+                // Gérer le cas où aucune ville n'est sélectionnée
+            }
+        });
+
 
         return searchBox;
     }
+
 
     private HBox createFooter() {
         HBox footerLayout = new HBox();

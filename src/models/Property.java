@@ -17,8 +17,9 @@ public class Property {
     private int idEmployee;
     private String title;
     private String imagePath;
+    private String city;
 
-    public Property(int idProperty, double size, String description, double price, boolean statusSold, boolean hasPool, boolean hasGarden, String propertyType, int numberOfRooms, boolean programVisit, int idBuyer, int idSeller, int idVisit, int idEmployee, String title, String imagePath) {
+    public Property(int idProperty, double size, String description, double price, boolean statusSold, boolean hasPool, boolean hasGarden, String propertyType, int numberOfRooms, boolean programVisit, int idBuyer, int idSeller, int idVisit, int idEmployee, String title, String imagePath,String city) {
         this.idProperty = idProperty;
         this.size = size;
         this.description = description;
@@ -35,6 +36,7 @@ public class Property {
         this.idEmployee = idEmployee;
         this.imagePath= imagePath;
         this.title= title;
+        this.city = city;
     }
 
     // Getters et setters
