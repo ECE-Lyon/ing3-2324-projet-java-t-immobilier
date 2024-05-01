@@ -2,17 +2,23 @@ package views;
 
 import dao.DatabaseConnection;
 import dao.PropertyDAO;
+import javafx.animation.ScaleTransition;
 import javafx.application.Application;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.ComboBox;
-import javafx.scene.control.Label;
-import javafx.scene.layout.VBox;
+import javafx.scene.control.*;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.layout.*;
+import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
+import javafx.scene.text.Text;
 import javafx.stage.Stage;
-import javafx.scene.control.TextField;
+import javafx.util.Duration;
+
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -24,26 +30,53 @@ public class PropertyFilter extends Application {
     private TextField minPriceField;
     private TextField maxPriceField;
     private final PropertyDAO propertyDAO = new PropertyDAO();
-    private VBox propertyInfoContainer;
+    private VBox propertyContainer;
 
     @Override
     public void start(Stage primaryStage) {
-        boolean i = false;
-        VBox root = new VBox();
-        root.setSpacing(10);
-        root.setPadding(new Insets(10));
+        primaryStage.setTitle("Propriétés");
+        primaryStage.setFullScreen(true); // Mettre la fenêtre en plein écran
 
-        Label titleLabel = new Label("Properties Information");
+        // Conteneur principal avec une grille pour organiser les éléments
+        GridPane root = new GridPane();
+        root.setAlignment(Pos.TOP_CENTER);
+        root.setHgap(20);
+        root.setVgap(20);
+        root.setPadding(new Insets(20));
+        root.setBackground(new Background(new BackgroundFill(Color.WHITE, CornerRadii.EMPTY, Insets.EMPTY)));
+
+        Button filtersButton = new Button("Afficher les filtres");
+        filtersButton.setStyle("-fx-background-color: rgb(213, 119, 195); -fx-text-fill: white; -fx-font-weight: bold;");
+        addHoverAnimation(filtersButton); // Ajouter une animation au survol
+
+        // Logo de l'agence en haut de la page
+        //ImageView logoView = new ImageView(new Image("ece_immo.jpeg"));
+        //logoView.setFitWidth(200); // Ajustez la largeur du logo selon vos besoins
+        //logoView.setPreserveRatio(true);
+
+        // Centrer le logo horizontalement
+        //HBox logoContainer = new HBox();
+        //logoContainer.getChildren().add(logoView);
+        //logoContainer.setAlignment(Pos.CENTER); // Centrer horizontalement
+
+        GridPane filtersGrid = new GridPane();
+        filtersGrid.setHgap(10);
+        filtersGrid.setVgap(10);
+        filtersGrid.setPadding(new Insets(10));
+
+
 
         cityComboBox = new ComboBox<>();
         ObservableList<String> cityOptions = FXCollections.observableArrayList("Toute"); // Ajout de "Toute" comme première option
         cityOptions.addAll(propertyDAO.getDistinctValues("city", "ADDRESS"));
         cityComboBox.setItems(cityOptions);
+        cityComboBox.setPromptText("Ville");
 
         typeComboBox = new ComboBox<>();
         ObservableList<String> typeOptions = FXCollections.observableArrayList("Toute"); // Ajout de "Toute" comme première option
         typeOptions.addAll(propertyDAO.getDistinctValues("property_type", "PROPERTY"));
         typeComboBox.setItems(typeOptions);
+        typeComboBox.setPromptText("Type de propriété");
 
         minPriceField = new TextField();
         minPriceField.setPromptText("Prix minimum");
@@ -52,73 +85,129 @@ public class PropertyFilter extends Application {
         maxPriceField.setPromptText("Prix maximum");
 
         Button filterButton = new Button("Filtrer");
-        filterButton.setOnAction(event -> filterProperties(primaryStage));
+        filterButton.setOnAction(event -> filterProperties());
 
         Button resetButton = new Button("Réinitialiser les filtres");
-        resetButton.setOnAction(event -> resetFilters(i));
+        resetButton.setOnAction(event -> resetFilters());
 
-        propertyInfoContainer = new VBox();
-        propertyInfoContainer.setSpacing(5);
+        filtersGrid.addRow(0, new Label(""), cityComboBox, new Label(""), typeComboBox, new Label("Prix minimum:"), minPriceField, new Label("Prix maximum:"), maxPriceField, filterButton, resetButton);
 
-        // Affichage de toutes les propriétés disponibles au démarrage de l'application
-        displayAllProperties(propertyInfoContainer);
+        // Conteneur pour les propriétés avec une barre de défilement
+        ScrollPane scrollPane = new ScrollPane();
 
-        root.getChildren().addAll(titleLabel, cityComboBox, typeComboBox, minPriceField, maxPriceField, filterButton, resetButton, propertyInfoContainer);
+        propertyContainer = new VBox();
+        propertyContainer.setAlignment(Pos.CENTER);
+        propertyContainer.setSpacing(20);
 
-        Scene scene = new Scene(root, 1000, 600);
+        scrollPane.setContent(propertyContainer);
+        scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        scrollPane.setStyle("-fx-background-color: transparent;");
+
+        // Affichage de toutes les propriétés au démarrage de l'application
+        displayAllProperties();
+
+        root.getChildren().addAll(filtersGrid, propertyContainer);
+
+        // Ajout des éléments à la grille principale
+        //root.add(logoContainer, 0, 0);
+        root.add(scrollPane, 0, 2);
+
+        Scene scene = new Scene(root);
         primaryStage.setScene(scene);
-        primaryStage.setTitle("Property Information");
+        primaryStage.setTitle("Liste des propriétés immobilières");
         primaryStage.show();
     }
 
-    private void displayAllProperties(VBox propertyInfoBox) {
-        StringBuilder allPropertiesInfo = new StringBuilder();
+    private void displayProperties(ResultSet resultSet) throws SQLException {
+        propertyContainer.getChildren().clear();
+        while (resultSet.next()) {
+            int id = resultSet.getInt("id_property");
+            float size = resultSet.getFloat("size");
+            String description = resultSet.getString("description");
+            double price = resultSet.getDouble("price");
+            String type = resultSet.getString("property_type");
+            String city = resultSet.getString("city");
+            String postalCode = resultSet.getString("postal_code");
+            int numberStreet = resultSet.getInt("number_street");
+            String nameStreet = resultSet.getString("name_street");
 
+            // Création de l'image statique
+            Image image = new Image(getClass().getResourceAsStream("/image1.jpg"));
+            ImageView imageView = new ImageView(image);
+            imageView.setFitWidth(800); // Largeur de l'image fixe
+            imageView.setFitHeight(600); // Hauteur de l'image fixe
+
+            VBox addressPriceBox = new VBox();
+            addressPriceBox.setAlignment(Pos.CENTER_LEFT);
+            addressPriceBox.setSpacing(10);
+
+
+            Label sizeLabel = new Label("Size: " + size);
+            sizeLabel.setFont(Font.font("Arial", 14));
+
+            Text descriptionLabel = new Text("Description: " + description);
+            descriptionLabel.setFont(Font.font("Arial", 14));
+            descriptionLabel.setFill(Color.valueOf("#777777"));
+            descriptionLabel.setWrappingWidth(imageView.getFitWidth() - 20); // Largeur de la description
+            descriptionLabel.setLineSpacing(2);
+
+            addressPriceBox.getChildren().addAll(sizeLabel, descriptionLabel);
+
+            HBox contentBox = new HBox();
+            contentBox.setAlignment(Pos.CENTER_LEFT);
+            contentBox.setSpacing(10);
+            contentBox.getChildren().addAll(imageView, addressPriceBox);
+
+            VBox propertyBox = new VBox();
+            propertyBox.setAlignment(Pos.CENTER_LEFT);
+            propertyBox.setSpacing(10);
+            propertyBox.setPadding(new Insets(10));
+            propertyBox.setStyle("-fx-background-color: #ffffff; -fx-border-color: #ccc; -fx-border-width: 1px;");
+
+            Label typeLabel = new Label("Type: " + type);
+            typeLabel.setFont(Font.font("Arial", 16));
+            typeLabel.setTextFill(Color.valueOf("#333333"));
+
+            Label addressLabel = new Label("Address: " + numberStreet + " " + nameStreet + ", " + postalCode + ", " + city);
+            addressLabel.setFont(Font.font("Arial", 14));
+            addressLabel.setTextFill(Color.valueOf("#666666"));
+
+            Label priceLabel = new Label("Price: $" + price);
+            priceLabel.setFont(Font.font("Arial", 14));
+            priceLabel.setTextFill(Color.valueOf("#666666"));
+
+            Button reserveButton = new Button("Réserver une visite");
+            reserveButton.setStyle("-fx-background-color: rgb(213, 119, 195); -fx-text-fill: white; -fx-font-weight: bold;");
+            addHoverAnimation(reserveButton); // Ajouter une animation au survol
+
+            propertyBox.getChildren().addAll(typeLabel, addressLabel, priceLabel,contentBox,reserveButton);
+
+            propertyContainer.getChildren().add(propertyBox);
+        }
+    }
+
+
+    private void displayAllProperties() {
         try {
             Connection connection = DatabaseConnection.getConnection();
             Statement statement = connection.createStatement();
             ResultSet resultSet = statement.executeQuery("SELECT p.id_property, p.size, p.description, p.price, p.property_type, a.city, a.postal_code, a.number_street, a.name_street " +
                     "FROM PROPERTY p " +
                     "JOIN ADDRESS a ON p.id_property = a.id_property");
-
-            while (resultSet.next()) {
-                int id = resultSet.getInt("id_property");
-                float size = resultSet.getFloat("size");
-                String description = resultSet.getString("description");
-                double price = resultSet.getDouble("price");
-                String type = resultSet.getString("property_type");
-                String city = resultSet.getString("city");
-                String postalCode = resultSet.getString("postal_code");
-                int numberStreet = resultSet.getInt("number_street");
-                String nameStreet = resultSet.getString("name_street");
-
-                allPropertiesInfo.append("Property ID: ").append(id).append("\n")
-                        .append("Size: ").append(size).append("\n")
-                        .append("Description: ").append(description).append("\n")
-                        .append("Price: ").append(price).append("\n")
-                        .append("Type: ").append(type).append("\n")
-                        .append("City: ").append(city).append("\n")
-                        .append("Address: ").append(numberStreet).append(" ").append(nameStreet).append(", ").append(postalCode).append("\n")
-                        .append("-----------------------------------------").append("\n");
-            }
-
+            displayProperties(resultSet);
             resultSet.close();
             statement.close();
             connection.close();
         } catch (SQLException e) {
             e.printStackTrace();
         }
-
-        propertyInfoBox.getChildren().add(new Label(allPropertiesInfo.toString()));
     }
 
-
-    private void filterProperties(Stage primaryStage) {
+    private void filterProperties() {
         String cityName = cityComboBox.getValue();
         String typeName = typeComboBox.getValue();
         String minPriceStr = minPriceField.getText();
         String maxPriceStr = maxPriceField.getText();
-        StringBuilder propertyInfo = new StringBuilder();
 
         String sqlQuery = "SELECT p.id_property, p.size, p.description, p.price, p.property_type, a.city, a.postal_code, a.number_street, a.name_street " +
                 "FROM PROPERTY p " +
@@ -149,53 +238,32 @@ public class PropertyFilter extends Application {
             Connection connection = DatabaseConnection.getConnection();
             Statement statement = connection.createStatement();
             ResultSet resultSet = statement.executeQuery(sqlQuery);
-
-            while (resultSet.next()) {
-                int id = resultSet.getInt("id_property");
-                float size = resultSet.getFloat("size");
-                String description = resultSet.getString("description");
-                double price = resultSet.getDouble("price");
-                String type = resultSet.getString("property_type");
-                String city = resultSet.getString("city");
-                String postalCode = resultSet.getString("postal_code");
-                int numberStreet = resultSet.getInt("number_street");
-                String nameStreet = resultSet.getString("name_street");
-
-                propertyInfo.append("Property ID: ").append(id).append("\n")
-                        .append("Size: ").append(size).append("\n")
-                        .append("Description: ").append(description).append("\n")
-                        .append("Price: ").append(price).append("\n")
-                        .append("Type: ").append(type).append("\n")
-                        .append("City: ").append(city).append("\n")
-                        .append("Address: ").append(numberStreet).append(" ").append(nameStreet).append(", ").append(postalCode).append("\n")
-                        .append("-----------------------------------------").append("\n");
-            }
-
+            displayProperties(resultSet);
             resultSet.close();
             statement.close();
             connection.close();
         } catch (SQLException e) {
             e.printStackTrace();
         }
-
-        propertyInfoContainer.getChildren().clear();
-        propertyInfoContainer.getChildren().add(new Label(propertyInfo.toString()));
     }
 
-    private boolean resetFilters(boolean i) {
-        if (!i){
-            cityComboBox.setValue("Toute");
-            typeComboBox.setValue("Toute");
-            minPriceField.clear();
-            maxPriceField.clear();
-            displayAllProperties(propertyInfoContainer);
-            i=true;
-        }else {
-            i = false;
-        }
+    private void resetFilters() {
+        cityComboBox.setValue("Toute");
+        typeComboBox.setValue("Toute");
+        minPriceField.clear();
+        maxPriceField.clear();
+        displayAllProperties();
+    }
 
-
-        return i;
+    private void addHoverAnimation(Button button) {
+        ScaleTransition scaleIn = new ScaleTransition(Duration.millis(100), button);
+        scaleIn.setToX(1.06); // Augmenter la valeur pour un agrandissement plus prononcé
+        scaleIn.setToY(1.06); // Augmenter la valeur pour un agrandissement plus prononcé
+        ScaleTransition scaleOut = new ScaleTransition(Duration.millis(100), button);
+        scaleOut.setToX(1);
+        scaleOut.setToY(1);
+        button.setOnMouseEntered(event -> scaleIn.play());
+        button.setOnMouseExited(event -> scaleOut.play());
     }
 
     public static void main(String[] args) {

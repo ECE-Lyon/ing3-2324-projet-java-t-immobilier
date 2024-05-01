@@ -146,50 +146,17 @@ public class ModernUIApp extends Application {
         searchBox.setPadding(new Insets(15));
         searchBox.setStyle("-fx-background-color: rgba(176,165,165,0.43); -fx-background-radius: 5;");
 
-        ComboBox<String> comboBoxCity = new ComboBox<>();
-        comboBoxCity.setItems(propertyDAO.getDistinctValues("city", "ADDRESS"));
-        comboBoxCity.setPromptText("Ville");
 
-        Button buttonSearch = new Button("Rechercher");
-        buttonSearch.setStyle("-fx-background-color: darkblue; -fx-text-fill: white;");
+        Button buttonSearch = new Button("Voir +");
+        buttonSearch.setStyle("-fx-background-color: rgb(213,119,195); -fx-text-fill: white;");
 
-        searchBox.getChildren().addAll(comboBoxCity, buttonSearch);
+        searchBox.getChildren().addAll(buttonSearch);
         buttonSearch.setOnAction(event -> {
-            String city = comboBoxCity.getValue();
-
-            if (city != null && !city.isEmpty()) {
-                List<Property> filteredProperties = propertyDAO.searchProperties(city, null, 0, 0, false, false);
-
-                vbox.getChildren().remove(2, vbox.getChildren().size());
-                ListView<Property> propertyListView = new ListView<>();
-                propertyListView.getItems().addAll(filteredProperties);
-                vbox.getChildren().add(propertyListView);
-                VBox.setVgrow(propertyListView, Priority.ALWAYS);
-
-                PropertyFilter propertyFilter = new PropertyFilter();
-                propertyFilter.start(primaryStage);
-            } else {
-                // Gérer le cas où aucune ville n'est sélectionnée
-            }
+            //ImmobilierPage immobilierPage = new ImmobilierPage();
+            //immobilierPage.start(primaryStage);
+            PropertyFilter propertyFilter = new PropertyFilter();
+            propertyFilter.start(primaryStage);
         });
-
-
-        comboBoxCity.setOnAction(event -> {
-            String city = comboBoxCity.getValue();
-
-            if (city != null && !city.isEmpty()) {
-                List<Property> filteredProperties = propertyDAO.searchProperties(city, null, 0, 0, false, false);
-
-                vbox.getChildren().remove(2, vbox.getChildren().size());
-                ListView<Property> propertyListView = new ListView<>();
-                propertyListView.getItems().addAll(filteredProperties);
-                vbox.getChildren().add(propertyListView);
-                VBox.setVgrow(propertyListView, Priority.ALWAYS);
-            } else {
-                // Gérer le cas où aucune ville n'est sélectionnée
-            }
-        });
-
 
         return searchBox;
     }
