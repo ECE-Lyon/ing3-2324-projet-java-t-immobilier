@@ -18,6 +18,8 @@ import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.util.Duration;
+import javafx.stage.Modality;
+
 
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -45,52 +47,28 @@ public class PropertyFilter extends Application {
         root.setPadding(new Insets(20));
         root.setBackground(new Background(new BackgroundFill(Color.WHITE, CornerRadii.EMPTY, Insets.EMPTY)));
 
-        Button filtersButton = new Button("Afficher les filtres");
-        filtersButton.setStyle("-fx-background-color: rgb(213, 119, 195); -fx-text-fill: white; -fx-font-weight: bold;");
-        addHoverAnimation(filtersButton); // Ajouter une animation au survol
+
+
+        Button afficherLesFiltres = new Button("Afficher les filtres");
+        afficherLesFiltres.setStyle("-fx-background-color: rgb(213, 119, 195); -fx-text-fill: white; -fx-font-weight: bold;");
+        addHoverAnimation(afficherLesFiltres); // Ajouter une animation au survol
+        afficherLesFiltres.setOnAction(event -> showFiltersPopup(primaryStage));
+
 
         // Logo de l'agence en haut de la page
-        //ImageView logoView = new ImageView(new Image("ece_immo.jpeg"));
-        //logoView.setFitWidth(200); // Ajustez la largeur du logo selon vos besoins
-        //logoView.setPreserveRatio(true);
+        ImageView logoView = new ImageView(new Image("ece_immo.jpeg"));
+        logoView.setFitWidth(200); // Ajustez la largeur du logo selon vos besoins
+        logoView.setPreserveRatio(true);
 
         // Centrer le logo horizontalement
-        //HBox logoContainer = new HBox();
-        //logoContainer.getChildren().add(logoView);
-        //logoContainer.setAlignment(Pos.CENTER); // Centrer horizontalement
+        HBox logoContainer = new HBox();
+        logoContainer.getChildren().add(logoView);
+        logoContainer.setAlignment(Pos.CENTER); // Centrer horizontalement
 
         GridPane filtersGrid = new GridPane();
         filtersGrid.setHgap(10);
         filtersGrid.setVgap(10);
         filtersGrid.setPadding(new Insets(10));
-
-
-
-        cityComboBox = new ComboBox<>();
-        ObservableList<String> cityOptions = FXCollections.observableArrayList("Toute"); // Ajout de "Toute" comme première option
-        cityOptions.addAll(propertyDAO.getDistinctValues("city", "ADDRESS"));
-        cityComboBox.setItems(cityOptions);
-        cityComboBox.setPromptText("Ville");
-
-        typeComboBox = new ComboBox<>();
-        ObservableList<String> typeOptions = FXCollections.observableArrayList("Toute"); // Ajout de "Toute" comme première option
-        typeOptions.addAll(propertyDAO.getDistinctValues("property_type", "PROPERTY"));
-        typeComboBox.setItems(typeOptions);
-        typeComboBox.setPromptText("Type de propriété");
-
-        minPriceField = new TextField();
-        minPriceField.setPromptText("Prix minimum");
-
-        maxPriceField = new TextField();
-        maxPriceField.setPromptText("Prix maximum");
-
-        Button filterButton = new Button("Filtrer");
-        filterButton.setOnAction(event -> filterProperties());
-
-        Button resetButton = new Button("Réinitialiser les filtres");
-        resetButton.setOnAction(event -> resetFilters());
-
-        filtersGrid.addRow(0, new Label(""), cityComboBox, new Label(""), typeComboBox, new Label("Prix minimum:"), minPriceField, new Label("Prix maximum:"), maxPriceField, filterButton, resetButton);
 
         // Conteneur pour les propriétés avec une barre de défilement
         ScrollPane scrollPane = new ScrollPane();
@@ -106,10 +84,10 @@ public class PropertyFilter extends Application {
         // Affichage de toutes les propriétés au démarrage de l'application
         displayAllProperties();
 
-        root.getChildren().addAll(filtersGrid, propertyContainer);
+        root.getChildren().addAll(logoView,filtersGrid, propertyContainer);
 
         // Ajout des éléments à la grille principale
-        //root.add(logoContainer, 0, 0);
+        root.add(afficherLesFiltres, 0, 0);
         root.add(scrollPane, 0, 2);
 
         Scene scene = new Scene(root);
@@ -118,6 +96,55 @@ public class PropertyFilter extends Application {
         primaryStage.show();
     }
 
+    public void showFiltersPopup(Stage primaryStage) {
+        Stage filtersStage = new Stage();
+        filtersStage.initModality(Modality.WINDOW_MODAL);
+        filtersStage.initOwner(primaryStage);
+
+        VBox filtersContainer = new VBox();
+        filtersContainer.setSpacing(10);
+        filtersContainer.setPadding(new Insets(20));
+        filtersContainer.setAlignment(Pos.TOP_RIGHT);
+
+        // Filtre par ville
+        cityComboBox = new ComboBox<>();
+        ObservableList<String> cityOptions = FXCollections.observableArrayList("Toute"); // Ajout de "Toute" comme première option
+        cityOptions.addAll(propertyDAO.getDistinctValues("city", "ADDRESS"));
+        cityComboBox.setItems(cityOptions);
+        cityComboBox.setPromptText("Ville");
+
+        // Filtre par type de propriété
+        typeComboBox = new ComboBox<>();
+        ObservableList<String> typeOptions = FXCollections.observableArrayList("Toute"); // Ajout de "Toute" comme première option
+        typeOptions.addAll(propertyDAO.getDistinctValues("property_type", "PROPERTY"));
+        typeComboBox.setItems(typeOptions);
+        typeComboBox.setPromptText("Type de propriété");
+
+        // Filtre par prix minimum
+        minPriceField = new TextField();
+        minPriceField.setPromptText("Prix minimum");
+
+        // Filtre par prix maximum
+        maxPriceField = new TextField();
+        maxPriceField.setPromptText("Prix maximum");
+
+        Button applyFiltersButton = new Button("Appliquer les filtres");
+        applyFiltersButton.setStyle("-fx-background-color: rgb(213, 119, 195); -fx-text-fill: white; -fx-font-weight: bold;");
+        applyFiltersButton.setOnAction(event -> {
+            filterProperties(); // Appliquer les filtres
+        });
+
+        Button resetFiltersButton = new Button("Réinitialiser les filtres");
+        resetFiltersButton.setOnAction(event -> resetFilters());
+
+        filtersContainer.getChildren().addAll(new Label(""), cityComboBox, new Label(""), typeComboBox, new Label("Prix minimum:"), minPriceField, new Label("Prix maximum:"), maxPriceField, applyFiltersButton, resetFiltersButton);
+
+
+        Scene filtersScene = new Scene(filtersContainer);
+        filtersStage.setScene(filtersScene);
+        filtersStage.setTitle("Filtres des propriétés");
+        filtersStage.show();
+    }
     private void displayProperties(ResultSet resultSet) throws SQLException {
         propertyContainer.getChildren().clear();
         while (resultSet.next()) {
