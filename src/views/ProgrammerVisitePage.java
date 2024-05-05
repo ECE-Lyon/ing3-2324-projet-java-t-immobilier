@@ -6,16 +6,31 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
-import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import javafx.scene.control.Label;
+import dao.VisitDAO;
+
+import java.time.LocalDate;
 
 public class ProgrammerVisitePage extends Application {
+    private int userId;
+    private int propertyId;
+
+    private Label confirmationLabelDate;
+    private Label confirmationLabelTime;
+
+    public ProgrammerVisitePage(int userId, int propertyId) {
+        this.userId = userId;
+        this.propertyId = propertyId;
+    }
 
     @Override
     public void start(Stage primaryStage) {
@@ -69,19 +84,31 @@ public class ProgrammerVisitePage extends Application {
         form.setHgap(10);
         form.setVgap(10);
 
-        TextField dateField = new TextField();
-        dateField.setPromptText("Date (yyyy-mm-dd)");
+        DatePicker datePicker = new DatePicker();
+        datePicker.setPromptText("Date");
 
-        TextField timeField = new TextField();
-        timeField.setPromptText("Heure (hh:mm)");
+        confirmationLabelDate = new Label("Date sélectionnée : ");
+        confirmationLabelTime = new Label("Heure sélectionnée : ");
+        confirmationLabelDate.setVisible(false);
+        confirmationLabelTime.setVisible(false);
+        form.add(confirmationLabelDate, 0, 3);
+        form.add(confirmationLabelTime, 0, 4);
+
+        ComboBox<String> timeComboBox = new ComboBox<>();
+        timeComboBox.setPromptText("Heure");
+        timeComboBox.getItems().addAll(
+                "08:00", "08:30", "09:00", "09:30", "10:00", "10:30", "11:00", "11:30",
+                "12:00", "12:30", "13:00", "13:30", "14:00", "14:30", "15:00", "15:30",
+                "16:00", "16:30", "17:00", "17:30", "18:00", "18:30", "19:00", "19:30"
+        );
 
         Button scheduleButton = new Button("Programmer la visite");
         scheduleButton.setStyle("-fx-background-color: rgb(213, 119, 195); -fx-text-fill: white;");
         scheduleButton.setMaxWidth(Double.MAX_VALUE);
 
         // Ajout des éléments au formulaire
-        form.add(dateField, 0, 0);
-        form.add(timeField, 0, 1);
+        form.add(datePicker, 0, 0);
+        form.add(timeComboBox, 0, 1);
         form.add(scheduleButton, 0, 2);
         GridPane.setHalignment(scheduleButton, HPos.RIGHT);
 
@@ -95,6 +122,37 @@ public class ProgrammerVisitePage extends Application {
         Scene scene = new Scene(root, 1000, 600); // Taille de la scène ajustée selon vos besoins
         primaryStage.setScene(scene);
         primaryStage.show();
+
+        // Action pour récupérer la date sélectionnée
+        datePicker.setOnAction(event -> {
+            LocalDate selectedDate = datePicker.getValue();
+            System.out.println("Date sélectionnée : " + selectedDate);
+        });
+
+        // Action pour récupérer l'heure sélectionnée
+        timeComboBox.setOnAction(event -> {
+            String selectedTime = timeComboBox.getValue();
+            System.out.println("Heure sélectionnée : " + selectedTime);
+        });
+
+        scheduleButton.setOnAction(event -> {
+            LocalDate selectedDate = datePicker.getValue();
+            String selectedTime = timeComboBox.getValue();
+
+            // Vérifiez si une date et une heure ont été sélectionnées
+            if (selectedDate != null && selectedTime != null) {
+                VisitDAO.insererVisite(selectedDate, selectedTime, propertyId);
+
+                // Afficher les informations de date et d'heure sélectionnées
+                confirmationLabelDate.setText("Date sélectionnée : " + selectedDate);
+                confirmationLabelTime.setText("Heure sélectionnée : " + selectedTime);
+                confirmationLabelDate.setVisible(true);
+                confirmationLabelTime.setVisible(true);
+            } else {
+                System.out.println("Veuillez sélectionner une date et une heure pour programmer la visite.");
+            }
+        });
+
     }
 
     public static void main(String[] args) {

@@ -19,6 +19,7 @@ import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 import javafx.stage.Modality;
+import models.Utilisateur;
 
 
 import java.sql.Connection;
@@ -206,6 +207,22 @@ public class PropertyFilter extends Application {
             Button reserveButton = new Button("Réserver une visite");
             reserveButton.setStyle("-fx-background-color: rgb(213, 119, 195); -fx-text-fill: white; -fx-font-weight: bold;");
             addHoverAnimation(reserveButton); // Ajouter une animation au survol
+
+            reserveButton.setOnAction(event -> {
+                int propertyId = (int) reserveButton.getUserData(); // Récupérer l'ID de la propriété associé à ce bouton
+                System.out.println("ID de la propriété : " + propertyId); // Afficher l'ID de la propriété dans la console
+                int userId = Utilisateur.getCurrentUser().getId(); // Récupérer l'ID de l'utilisateur connecté
+                ProgrammerVisitePage programmerVisitePage = new ProgrammerVisitePage(userId, propertyId);
+                try {
+                    programmerVisitePage.start(new Stage());
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            });
+
+// Lors de la création de chaque bouton "Réserver une visite", attribuez l'ID de la propriété correspondante
+            reserveButton.setUserData(id); // Remplacez "id" par l'ID de la propriété associée à ce bouton
+
 
             propertyBox.getChildren().addAll(typeLabel, addressLabel, priceLabel,contentBox,reserveButton);
 
