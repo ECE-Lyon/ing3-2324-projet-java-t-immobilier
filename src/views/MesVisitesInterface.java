@@ -94,7 +94,7 @@ public class MesVisitesInterface extends Application {
                 int propertyId = resultSet.getInt("id_property");
 
                 // Récupérer les détails de la propriété associée à cette visite
-                String propertyDetails = getPropertyDetails(propertyId); // Méthode à implémenter
+                String propertyDetails = getPropertyDetails(propertyId);
 
                 // Créer un conteneur VBox pour afficher les détails de la visite
                 VBox visitDetails = new VBox();

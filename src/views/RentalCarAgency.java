@@ -9,6 +9,8 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
+import java.sql.*;
+import dao.DatabaseConnection;
 
 public class RentalCarAgency extends Application {
 
@@ -41,6 +43,7 @@ public class RentalCarAgency extends Application {
         Scene scene = new Scene(root, 1000, 800);
         primaryStage.setTitle("Agence de location de voitures");
         primaryStage.setScene(scene);
+        primaryStage.setFullScreen(true);
         primaryStage.show();
     }
 
@@ -120,6 +123,24 @@ public class RentalCarAgency extends Application {
             showReservationConfirmation(primaryStage);
         });
 
+        // Récupération des informations de l'utilisateur à partir de la base de données
+        try (Connection connection = DatabaseConnection.getConnection()) {
+            String query = "SELECT name, email FROM UTILISATEUR WHERE id_user = ?";
+            PreparedStatement statement = connection.prepareStatement(query);
+            // Remplacez "1" par l'ID de l'utilisateur connecté
+            statement.setInt(1, 1);
+            ResultSet resultSet = statement.executeQuery();
+            if (resultSet.next()) {
+                String name = resultSet.getString("name");
+                String email = resultSet.getString("email");
+                nameTextField.setText(name);
+                emailTextField.setText(email);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            // Gestion des erreurs de connexion à la base de données
+        }
+
         reservationBox.getChildren().addAll(reservationLabel, nameTextField, emailTextField, carNumberTextField, startDatePicker, endDatePicker, reserveButton);
 
         return reservationBox;
@@ -139,6 +160,7 @@ public class RentalCarAgency extends Application {
         alert.setContentText("Votre réservation a été effectuée avec succès. Bonne route !");
         alert.showAndWait();
     }
+
 
     public static void main(String[] args) {
         launch(args);

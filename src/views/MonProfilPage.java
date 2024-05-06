@@ -73,8 +73,6 @@ public class MonProfilPage extends Application {
             mesVisitesInterface.start(mesVisitesStage);
         });
 
-        Button myFavoritesButton = createSectionButton("Mes propriétés favorites");
-        Button myPropertiesButton = createSectionButton("Mes propriétés mises en vente");
         // Création du bouton pour l'historique
         Button myHistoryButton = createSectionButton("Mon historique");
         myHistoryButton.setOnAction(event -> {
@@ -86,7 +84,7 @@ public class MonProfilPage extends Application {
 
 
         // Ajout des éléments au conteneur du profil
-        profileLayout.getChildren().addAll(title, subtitle, myInfoButton, myVisitsButton, myFavoritesButton, myPropertiesButton, myHistoryButton);
+        profileLayout.getChildren().addAll(title, subtitle, myInfoButton, myVisitsButton, myHistoryButton);
 
 
 

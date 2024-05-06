@@ -49,11 +49,11 @@ public class PropertyFilter extends Application {
         root.setBackground(new Background(new BackgroundFill(Color.WHITE, CornerRadii.EMPTY, Insets.EMPTY)));
 
 
-
         Button afficherLesFiltres = new Button("Afficher les filtres");
         afficherLesFiltres.setStyle("-fx-background-color: rgb(213, 119, 195); -fx-text-fill: white; -fx-font-weight: bold;");
         addHoverAnimation(afficherLesFiltres); // Ajouter une animation au survol
         afficherLesFiltres.setOnAction(event -> showFiltersPopup(primaryStage));
+
 
 
         // Logo de l'agence en haut de la page

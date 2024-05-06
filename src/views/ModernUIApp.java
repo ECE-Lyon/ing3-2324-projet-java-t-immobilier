@@ -77,6 +77,26 @@ public class ModernUIApp extends Application {
             rentalCinemaAgency.start(rentalCinemaAgencyStage);
         });
 
+        Menu menuDeconnexion = new Menu("Déconnexion");
+        MenuItem logoutMenuItem = new MenuItem("Se déconnecter");
+        menuDeconnexion.getItems().add(logoutMenuItem);
+        menuBar.getMenus().add(menuDeconnexion);
+
+        logoutMenuItem.setOnAction(event -> {
+            // Déconnexion de l'utilisateur
+            Utilisateur.setCurrentUser(null);
+            // Redirection vers la page de connexion
+            LoginInterface loginPage = new LoginInterface();
+            Stage loginStage = new Stage();
+            try {
+                loginPage.start(loginStage);
+                primaryStage.close(); // Fermer la fenêtre actuelle après déconnexion
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
+
+
         // Icône de profil à droite
         ImageView profileIcon = new ImageView(new Image(getClass().getResourceAsStream("/icon.jpg")));
         profileIcon.setFitWidth(30);
