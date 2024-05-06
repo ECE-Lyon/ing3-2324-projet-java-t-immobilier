@@ -13,6 +13,7 @@ import javafx.scene.text.Font;
 import javafx.stage.Stage;
 import models.Utilisateur;
 
+
 public class MonProfilPage extends Application {
 
     @Override
@@ -66,6 +67,12 @@ public class MonProfilPage extends Application {
             clientInfoPage.start(clientInfoStage);
         });
         Button myVisitsButton = createSectionButton("Mes visites");
+        myVisitsButton.setOnAction(event -> {
+            Stage mesVisitesStage = new Stage();
+            MesVisitesInterface mesVisitesInterface = new MesVisitesInterface();
+            mesVisitesInterface.start(mesVisitesStage);
+        });
+
         Button myFavoritesButton = createSectionButton("Mes propriétés favorites");
         Button myPropertiesButton = createSectionButton("Mes propriétés mises en vente");
         // Création du bouton pour l'historique

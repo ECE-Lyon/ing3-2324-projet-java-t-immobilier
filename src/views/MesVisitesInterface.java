@@ -1,6 +1,6 @@
 package views;
 
-import javafx.animation.*;
+import dao.DatabaseConnection;
 import javafx.application.Application;
 import javafx.geometry.*;
 import javafx.scene.Scene;
@@ -12,8 +12,40 @@ import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.util.Duration;
+import models.Utilisateur;
+import javafx.animation.TranslateTransition;
+import javafx.animation.ScaleTransition;
+import javafx.scene.Node;
+
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 
 public class MesVisitesInterface extends Application {
+
+    // Méthode pour récupérer les visites de l'utilisateur courant depuis la base de données
+    private ResultSet getVisitsForCurrentUser() throws SQLException {
+        Connection connection = null;
+        PreparedStatement statement = null;
+        ResultSet resultSet = null;
+        try {
+            connection = DatabaseConnection.getConnection();
+            String query = "SELECT V.*, P.id_property " +
+                    "FROM VISIT V " +
+                    "JOIN PROPERTY P ON V.id_property = P.id_property " +
+                    "WHERE P.id_client IN (SELECT id_client FROM CLIENT WHERE id_user = ?)";
+            statement = connection.prepareStatement(query);
+            statement.setInt(1, Utilisateur.getCurrentUser().getId());
+            resultSet = statement.executeQuery();
+            return resultSet;
+        } catch (SQLException e) {
+            // Gérer l'exception ici ou la propager
+            throw e;
+        }
+    }
+
 
     @Override
     public void start(Stage primaryStage) {
@@ -52,11 +84,35 @@ public class MesVisitesInterface extends Application {
         scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
         scrollPane.setStyle("-fx-background-color: transparent;");
 
-        // Exemple de visites (à remplacer par des données dynamiques)
-        for (int i = 0; i < 10; i++) {
-            VBox visit = createVisit("01/05/2024", "Lundi", "Villa Vue Mer Collines Cannes", "image1.jpg", "Dans les douces collines de Cannes, surplombant la Méditerranée, se dresse majestueusement une villa de luxe, symbole d'opulence et de raffinement. Les portes en bois massif s'ouvrent sur un hall d'entrée orné de marbre italien, où la lumière naturelle danse à travers des vitraux colorés. Un escalier en spirale, avec une rampe en fer forgé finement ciselée, mène aux étages supérieurs. Les pièces sont des œuvres d'art en elles-mêmes, avec des plafonds voûtés ornés de fresques murales, des lustres en cristal étincelants et des sols en parquet de chêne poli à la perfection... Les fenêtres panoramiques offrent des vues imprenables sur la mer scintillante et les jardins luxuriants qui entourent la propriété...");
-            visit.prefWidthProperty().bind(root.widthProperty().subtract(40)); // Largeur relative au GridPane
-            visitsContainer.getChildren().add(visit);
+        try (ResultSet resultSet = getVisitsForCurrentUser()) {
+            boolean hasVisits = false;
+            while (resultSet.next()) {
+                hasVisits = true;
+                String date = resultSet.getString("date_visit");
+                String time = resultSet.getString("time_visit");
+                String feedback = resultSet.getString("feedback");
+                int propertyId = resultSet.getInt("id_property");
+
+                // Récupérer les détails de la propriété associée à cette visite
+                String propertyDetails = getPropertyDetails(propertyId); // Méthode à implémenter
+
+                // Créer un conteneur VBox pour afficher les détails de la visite
+                VBox visitDetails = new VBox();
+                visitDetails.getChildren().addAll(
+                        new Label("Date: " + date),
+                        new Label("Heure: " + time),
+                        new Label("Feedback: " + feedback),
+                        new Label("Détails de la propriété: " + propertyDetails)
+                );
+                visitsContainer.getChildren().add(visitDetails);
+            }
+            if (!hasVisits) {
+                Label noVisitsLabel = new Label("Aucune visite programmée.");
+                noVisitsLabel.setFont(Font.font("Arial", 16));
+                visitsContainer.getChildren().add(noVisitsLabel);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace(); // Gestion de l'erreur de base de données
         }
 
         // Ajout des éléments à la grille principale
@@ -72,6 +128,54 @@ public class MesVisitesInterface extends Application {
         // Ajouter des animations de défilement entre les visites
         addAnimations(visitsContainer);
     }
+
+    private String getPropertyDetails(int propertyId) throws SQLException {
+        Connection connection = null;
+        PreparedStatement statement = null;
+        ResultSet resultSet = null;
+        String propertyDetails = "";
+
+        try {
+            connection = DatabaseConnection.getConnection();
+            String query = "SELECT * FROM PROPERTY WHERE id_property = ?";
+            statement = connection.prepareStatement(query);
+            statement.setInt(1, propertyId);
+            resultSet = statement.executeQuery();
+
+            if (resultSet.next()) {
+                // Récupérer les détails de la propriété
+                String description = resultSet.getString("description");
+                double price = resultSet.getDouble("price");
+                boolean hasPool = resultSet.getBoolean("has_pool");
+                boolean hasGarden = resultSet.getBoolean("has_garden");
+                int nbRooms = resultSet.getInt("nb_room");
+
+                // Construire une chaîne de caractères pour afficher les détails
+                propertyDetails = "Description: " + description + "\n" +
+                        "Prix: " + price + "\n" +
+                        "Piscine: " + (hasPool ? "Oui" : "Non") + "\n" +
+                        "Jardin: " + (hasGarden ? "Oui" : "Non") + "\n" +
+                        "Nombre de pièces: " + nbRooms;
+            }
+        } catch (SQLException e) {
+            // Gérer l'exception ici ou la propager
+            throw e;
+        } finally {
+            // Fermer la connexion, le statement et le resultSet
+            if (resultSet != null) {
+                resultSet.close();
+            }
+            if (statement != null) {
+                statement.close();
+            }
+            if (connection != null) {
+                connection.close();
+            }
+        }
+
+        return propertyDetails;
+    }
+
 
     // Créer un conteneur pour une visite avec une mise en forme spécifique
     private VBox createVisit(String date, String day, String property, String imageUrl, String description) {
@@ -144,16 +248,19 @@ public class MesVisitesInterface extends Application {
     // Ajouter des animations de défilement entre les visites
     private void addAnimations(VBox visitsContainer) {
         for (int i = 0; i < visitsContainer.getChildren().size(); i++) {
-            VBox visit = (VBox) visitsContainer.getChildren().get(i);
-            TranslateTransition transition = new TranslateTransition(Duration.seconds(0.5), visit);
-            visit.setOnMouseEntered(event -> {
-                transition.setToX(10);
-                transition.play();
-            });
-            visit.setOnMouseExited(event -> {
-                transition.setToX(0);
-                transition.play();
-            });
+            Node node = visitsContainer.getChildren().get(i);
+            if (node instanceof VBox) {
+                VBox visit = (VBox) node;
+                TranslateTransition transition = new TranslateTransition(Duration.seconds(0.5), visit);
+                visit.setOnMouseEntered(event -> {
+                    transition.setToX(10);
+                    transition.play();
+                });
+                visit.setOnMouseExited(event -> {
+                    transition.setToX(0);
+                    transition.play();
+                });
+            }
         }
     }
 
