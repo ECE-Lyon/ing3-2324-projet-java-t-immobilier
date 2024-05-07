@@ -1,5 +1,6 @@
 package views;
 
+import dao.DatabaseConnection;
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -9,6 +10,11 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 
 public class RentalCinemaAgency extends Application {
 
@@ -26,7 +32,7 @@ public class RentalCinemaAgency extends Application {
         logoImage.setPreserveRatio(true);
 
         // Titre
-        Label titleLabel = new Label("Bienvenue à notre agence de location de salles de cinéma");
+        Label titleLabel = new Label("Bienvenue à notre agence de location de films");
         titleLabel.setStyle("-fx-font-size: 24px; -fx-font-weight: bold;");
 
         // Informations sur les salles de cinéma disponibles
@@ -39,8 +45,9 @@ public class RentalCinemaAgency extends Application {
 
         // Affichage de la scène
         Scene scene = new Scene(root, 1000, 800);
-        primaryStage.setTitle("Agence de location de salles de cinéma");
+        primaryStage.setTitle("Agence de location de salles de films");
         primaryStage.setScene(scene);
+        primaryStage.setFullScreen(true);
         primaryStage.show();
     }
 
@@ -112,22 +119,69 @@ public class RentalCinemaAgency extends Application {
 
         TextField nameTextField = createTextField("Nom");
         TextField emailTextField = createTextField("Email");
-        TextField cinemaNumberTextField = createTextField("Numéro de salle de cinéma");
 
-        TextField timeTextField = createTextField("Heure de la séance");
+        ComboBox<String> cinemaNumberComboBox = new ComboBox<>();
+        cinemaNumberComboBox.setPromptText("Sélectionnez un numéro de voiture");
+
+        DatePicker startDatePicker = new DatePicker();
+        startDatePicker.setPromptText("Heure de séance");
 
         Button reserveButton = new Button("Réserver");
         reserveButton.setOnAction(event -> {
             String name = nameTextField.getText();
             String email = emailTextField.getText();
-            String cinemaNumber = cinemaNumberTextField.getText();
-            String time = timeTextField.getText();
-            System.out.println("Réservation : Nom = " + name + ", Email = " + email + ", Numéro de salle de cinéma = " + cinemaNumber
-                    + ", Heure de la séance = " + time);
-            showReservationConfirmation(primaryStage);
+            String cinemaNumber = cinemaNumberComboBox.getValue();
+            String startTime = startDatePicker.getValue().toString(); // Heure de début uniquement
+
+            // Exécuter la requête d'insertion
+            try (Connection connection = DatabaseConnection.getConnection()) {
+                String query = "INSERT INTO RESERVATION (nom, email, nom_film, date_debut, id_client) VALUES (?, ?, ?, ?, ?)";
+                PreparedStatement statement = connection.prepareStatement(query);
+                statement.setString(1, name);
+                statement.setString(2, email);
+                statement.setString(3, cinemaNumber);
+                statement.setDate(4, java.sql.Date.valueOf(startTime));
+                int clientId = 1; // Remplacez par l'ID du client approprié
+                statement.setInt(5, clientId);
+                statement.executeUpdate();
+                System.out.println("Réservation enregistrée dans la base de données avec succès.");
+                showReservationConfirmation(primaryStage);
+            } catch (SQLException e) {
+                e.printStackTrace();
+                // Gestion des erreurs de connexion à la base de données ou d'insertion
+            }
         });
 
-        reservationBox.getChildren().addAll(reservationLabel, nameTextField, emailTextField, cinemaNumberTextField, timeTextField, reserveButton);
+
+        // Récupération des informations de l'utilisateur à partir de la base de données
+        try (Connection connection = DatabaseConnection.getConnection()) {
+            // Requête pour récupérer le nom et l'email de l'utilisateur
+            String userQuery = "SELECT name, email FROM UTILISATEUR WHERE id_user = ?";
+            PreparedStatement userStatement = connection.prepareStatement(userQuery);
+            // Remplacez "1" par l'ID de l'utilisateur connecté
+            userStatement.setInt(1, 1);
+            ResultSet userResultSet = userStatement.executeQuery();
+            if (userResultSet.next()) {
+                String name = userResultSet.getString("name");
+                String email = userResultSet.getString("email");
+                nameTextField.setText(name);
+                emailTextField.setText(email);
+            }
+
+            // Requête pour récupérer les numéros de voiture disponibles
+            String cinemaNumberQuery = "SELECT DISTINCT nom_film FROM RESERVATION";
+            PreparedStatement cinemaNumberStatement = connection.prepareStatement(cinemaNumberQuery);
+            ResultSet carNumberResultSet = cinemaNumberStatement.executeQuery();
+            while (carNumberResultSet.next()) {
+                String carNumber = carNumberResultSet.getString("nom_film");
+                cinemaNumberComboBox.getItems().add(carNumber);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            // Gestion des erreurs de connexion à la base de données
+        }
+
+        reservationBox.getChildren().addAll(reservationLabel, nameTextField, emailTextField, cinemaNumberComboBox, startDatePicker, reserveButton);
 
         return reservationBox;
     }

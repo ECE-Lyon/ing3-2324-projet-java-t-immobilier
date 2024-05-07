@@ -103,8 +103,9 @@ public class RentalCarAgency extends Application {
 
         TextField nameTextField = createTextField("Nom");
         TextField emailTextField = createTextField("Email");
-        TextField carNumberTextField = createTextField("Numéro de voiture");
-
+        // Liste déroulante pour les numéros de voiture disponibles
+        ComboBox<String> carNumberComboBox = new ComboBox<>();
+        carNumberComboBox.setPromptText("Sélectionnez un numéro de voiture");
         DatePicker startDatePicker = new DatePicker();
         startDatePicker.setPromptText("Date de début de location");
 
@@ -115,33 +116,61 @@ public class RentalCarAgency extends Application {
         reserveButton.setOnAction(event -> {
             String name = nameTextField.getText();
             String email = emailTextField.getText();
-            String carNumber = carNumberTextField.getText();
+            String carNumber = carNumberComboBox.getValue();
             String startDate = startDatePicker.getValue().toString();
             String endDate = endDatePicker.getValue().toString();
-            System.out.println("Réservation : Nom = " + name + ", Email = " + email + ", Numéro de voiture = " + carNumber
-                    + ", Date de début = " + startDate + ", Date de fin = " + endDate);
-            showReservationConfirmation(primaryStage);
+
+            // Exécuter la requête d'insertion
+            try (Connection connection = DatabaseConnection.getConnection()) {
+                String query = "INSERT INTO RESERVATION (nom, email, numero_voiture, date_debut, date_fin, id_client) VALUES (?, ?, ?, ?, ?, ?)";
+                PreparedStatement statement = connection.prepareStatement(query);
+                statement.setString(1, name);
+                statement.setString(2, email);
+                statement.setString(3, carNumber);
+                statement.setDate(4, java.sql.Date.valueOf(startDate));
+                statement.setDate(5, java.sql.Date.valueOf(endDate));
+                // Supposons que vous avez l'ID du client à partir d'une autre source, sinon, vous devez le récupérer
+                int clientId = 1; // Remplacez par l'ID du client approprié
+                statement.setInt(6, clientId);
+                statement.executeUpdate();
+                System.out.println("Réservation enregistrée dans la base de données avec succès.");
+                showReservationConfirmation(primaryStage);
+            } catch (SQLException e) {
+                e.printStackTrace();
+                // Gestion des erreurs de connexion à la base de données ou d'insertion
+            }
         });
+
 
         // Récupération des informations de l'utilisateur à partir de la base de données
         try (Connection connection = DatabaseConnection.getConnection()) {
-            String query = "SELECT name, email FROM UTILISATEUR WHERE id_user = ?";
-            PreparedStatement statement = connection.prepareStatement(query);
+            // Requête pour récupérer le nom et l'email de l'utilisateur
+            String userQuery = "SELECT name, email FROM UTILISATEUR WHERE id_user = ?";
+            PreparedStatement userStatement = connection.prepareStatement(userQuery);
             // Remplacez "1" par l'ID de l'utilisateur connecté
-            statement.setInt(1, 1);
-            ResultSet resultSet = statement.executeQuery();
-            if (resultSet.next()) {
-                String name = resultSet.getString("name");
-                String email = resultSet.getString("email");
+            userStatement.setInt(1, 1);
+            ResultSet userResultSet = userStatement.executeQuery();
+            if (userResultSet.next()) {
+                String name = userResultSet.getString("name");
+                String email = userResultSet.getString("email");
                 nameTextField.setText(name);
                 emailTextField.setText(email);
+            }
+
+            // Requête pour récupérer les numéros de voiture disponibles
+            String carNumberQuery = "SELECT DISTINCT numero_voiture FROM RESERVATION";
+            PreparedStatement carNumberStatement = connection.prepareStatement(carNumberQuery);
+            ResultSet carNumberResultSet = carNumberStatement.executeQuery();
+            while (carNumberResultSet.next()) {
+                String carNumber = carNumberResultSet.getString("numero_voiture");
+                carNumberComboBox.getItems().add(carNumber);
             }
         } catch (SQLException e) {
             e.printStackTrace();
             // Gestion des erreurs de connexion à la base de données
         }
 
-        reservationBox.getChildren().addAll(reservationLabel, nameTextField, emailTextField, carNumberTextField, startDatePicker, endDatePicker, reserveButton);
+        reservationBox.getChildren().addAll(reservationLabel, nameTextField, emailTextField, carNumberComboBox, startDatePicker, endDatePicker, reserveButton);
 
         return reservationBox;
     }
