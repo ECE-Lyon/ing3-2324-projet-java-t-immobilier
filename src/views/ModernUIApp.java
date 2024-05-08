@@ -68,12 +68,12 @@ public class ModernUIApp extends Application {
 
         rentalCarMenuItem.setOnAction(event -> {
             Stage rentalCarAgencyStage = new Stage();
-            RentalCarAgency rentalCarAgency = new RentalCarAgency();
+            RentalCarAgency rentalCarAgency = new RentalCarAgency(userId);
             rentalCarAgency.start(rentalCarAgencyStage);
         });
         rentalCinemaMenuItem.setOnAction(event -> {
             Stage rentalCinemaAgencyStage = new Stage();
-            RentalCinemaAgency rentalCinemaAgency = new RentalCinemaAgency();
+            RentalCinemaAgency rentalCinemaAgency = new RentalCinemaAgency(userId);
             rentalCinemaAgency.start(rentalCinemaAgencyStage);
         });
 

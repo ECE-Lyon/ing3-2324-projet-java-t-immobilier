@@ -10,6 +10,7 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
+import java.time.LocalDate;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -17,6 +18,12 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 public class RentalCinemaAgency extends Application {
+
+    private int userId; // Ajout de l'ID de l'utilisateur
+
+    public RentalCinemaAgency(int userId) {
+        this.userId = userId;
+    }
 
     @Override
     public void start(Stage primaryStage) {
@@ -121,7 +128,7 @@ public class RentalCinemaAgency extends Application {
         TextField emailTextField = createTextField("Email");
 
         ComboBox<String> cinemaNumberComboBox = new ComboBox<>();
-        cinemaNumberComboBox.setPromptText("Sélectionnez un numéro de voiture");
+        cinemaNumberComboBox.setPromptText("Sélectionnez un film");
 
         DatePicker startDatePicker = new DatePicker();
         startDatePicker.setPromptText("Heure de séance");
@@ -131,26 +138,35 @@ public class RentalCinemaAgency extends Application {
             String name = nameTextField.getText();
             String email = emailTextField.getText();
             String cinemaNumber = cinemaNumberComboBox.getValue();
-            String startTime = startDatePicker.getValue().toString(); // Heure de début uniquement
+            LocalDate startDate = startDatePicker.getValue();
 
-            // Exécuter la requête d'insertion
-            try (Connection connection = DatabaseConnection.getConnection()) {
-                String query = "INSERT INTO RESERVATION (nom, email, nom_film, date_debut, id_client) VALUES (?, ?, ?, ?, ?)";
-                PreparedStatement statement = connection.prepareStatement(query);
-                statement.setString(1, name);
-                statement.setString(2, email);
-                statement.setString(3, cinemaNumber);
-                statement.setDate(4, java.sql.Date.valueOf(startTime));
-                int clientId = 1; // Remplacez par l'ID du client approprié
-                statement.setInt(5, clientId);
-                statement.executeUpdate();
-                System.out.println("Réservation enregistrée dans la base de données avec succès.");
-                showReservationConfirmation(primaryStage);
-            } catch (SQLException e) {
-                e.printStackTrace();
-                // Gestion des erreurs de connexion à la base de données ou d'insertion
+            // Vérifier si startDate est null
+            if (startDate != null) {
+                String startTime = startDate.toString(); // Heure de début uniquement
+                // Exécuter la requête d'insertion
+                try (Connection connection = DatabaseConnection.getConnection()) {
+                    String query = "INSERT INTO RESERVATION (nom, email, nom_film, date_debut) VALUES (?, ?, ?, ?)";
+                    //String query = "INSERT INTO RESERVATION (nom, email, nom_film, date_debut, id_client) VALUES (?, ?, ?, ?, ?)";
+                    PreparedStatement statement = connection.prepareStatement(query);
+                    statement.setString(1, name);
+                    statement.setString(2, email);
+                    statement.setString(3, cinemaNumber);
+                    statement.setDate(4, java.sql.Date.valueOf(startTime));
+                    //statement.setInt(5, id_user);
+                    statement.executeUpdate();
+                    System.out.println("Réservation enregistrée dans la base de données avec succès.");
+                    showReservationConfirmation(primaryStage);
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                    // Gestion des erreurs de connexion à la base de données ou d'insertion
+                }
+            } else {
+                // Gérer le cas où aucune date n'est sélectionnée
+                System.out.println("Veuillez sélectionner une date de séance.");
+                // Afficher un message d'erreur ou effectuer une action appropriée
             }
         });
+
 
 
         // Récupération des informations de l'utilisateur à partir de la base de données
@@ -158,8 +174,7 @@ public class RentalCinemaAgency extends Application {
             // Requête pour récupérer le nom et l'email de l'utilisateur
             String userQuery = "SELECT name, email FROM UTILISATEUR WHERE id_user = ?";
             PreparedStatement userStatement = connection.prepareStatement(userQuery);
-            // Remplacez "1" par l'ID de l'utilisateur connecté
-            userStatement.setInt(1, 1);
+            userStatement.setInt(1, userId);
             ResultSet userResultSet = userStatement.executeQuery();
             if (userResultSet.next()) {
                 String name = userResultSet.getString("name");

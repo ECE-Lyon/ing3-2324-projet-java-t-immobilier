@@ -14,6 +14,12 @@ import dao.DatabaseConnection;
 
 public class RentalCarAgency extends Application {
 
+    private int userId; // Ajout de l'ID de l'utilisateur
+
+    public RentalCarAgency(int userId) {
+        this.userId = userId;
+    }
+
     @Override
     public void start(Stage primaryStage) {
         VBox root = new VBox();
@@ -122,7 +128,8 @@ public class RentalCarAgency extends Application {
 
             // Exécuter la requête d'insertion
             try (Connection connection = DatabaseConnection.getConnection()) {
-                String query = "INSERT INTO RESERVATION (nom, email, numero_voiture, date_debut, date_fin, id_client) VALUES (?, ?, ?, ?, ?, ?)";
+                String query = "INSERT INTO RESERVATION (nom, email, numero_voiture, date_debut, date_fin) VALUES (?, ?, ?, ?, ?)";
+                //String query = "INSERT INTO RESERVATION (nom, email, numero_voiture, date_debut, date_fin, id_client) VALUES (?, ?, ?, ?, ?, ?)";
                 PreparedStatement statement = connection.prepareStatement(query);
                 statement.setString(1, name);
                 statement.setString(2, email);
@@ -130,8 +137,7 @@ public class RentalCarAgency extends Application {
                 statement.setDate(4, java.sql.Date.valueOf(startDate));
                 statement.setDate(5, java.sql.Date.valueOf(endDate));
                 // Supposons que vous avez l'ID du client à partir d'une autre source, sinon, vous devez le récupérer
-                int clientId = 1; // Remplacez par l'ID du client approprié
-                statement.setInt(6, clientId);
+                //statement.setInt(6, clientId);
                 statement.executeUpdate();
                 System.out.println("Réservation enregistrée dans la base de données avec succès.");
                 showReservationConfirmation(primaryStage);
@@ -147,8 +153,7 @@ public class RentalCarAgency extends Application {
             // Requête pour récupérer le nom et l'email de l'utilisateur
             String userQuery = "SELECT name, email FROM UTILISATEUR WHERE id_user = ?";
             PreparedStatement userStatement = connection.prepareStatement(userQuery);
-            // Remplacez "1" par l'ID de l'utilisateur connecté
-            userStatement.setInt(1, 1);
+            userStatement.setInt(1, userId);
             ResultSet userResultSet = userStatement.executeQuery();
             if (userResultSet.next()) {
                 String name = userResultSet.getString("name");
