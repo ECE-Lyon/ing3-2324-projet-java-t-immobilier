@@ -63,12 +63,14 @@ public class HistoriquePage extends Application {
             PreparedStatement statement = connection.prepareStatement(
                     "SELECT p.id_property, p.description, p.price, v.date_visit " +
                             "FROM PROPERTY p " +
-                            "JOIN VISIT v ON p.id_visit = v.id_visit " +
-                            "JOIN CLIENT c ON (p.id_buyer = c.id_client OR p.id_seller = c.id_client) " +
-                            "WHERE c.id_user = ?"
+                            "JOIN VISIT v ON p.id_property = v.id_property " +
+                            "LEFT JOIN CLIENT c_buyer ON p.id_client = c_buyer.id_client " +
+                            "LEFT JOIN CLIENT c_seller ON p.id_employee = c_seller.id_client " +
+                            "WHERE c_buyer.id_user = ? OR c_seller.id_user = ?"
             );
 
             statement.setInt(1, client.getId());
+            statement.setInt(2, client.getId());
             ResultSet resultSet = statement.executeQuery();
 
             while (resultSet.next()) {
@@ -93,4 +95,3 @@ public class HistoriquePage extends Application {
         launch(args);
     }
 }
-

@@ -141,7 +141,7 @@ public class ProgrammerVisitePage extends Application {
 
             // Vérifiez si une date et une heure ont été sélectionnées
             if (selectedDate != null && selectedTime != null) {
-                VisitDAO.insererVisite(selectedDate, selectedTime, propertyId);
+                VisitDAO.insererVisite(selectedDate, selectedTime, propertyId, userId);
 
                 // Afficher les informations de date et d'heure sélectionnées
                 confirmationLabelDate.setText("Date sélectionnée : " + selectedDate);

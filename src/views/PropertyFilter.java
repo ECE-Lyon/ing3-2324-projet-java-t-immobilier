@@ -212,6 +212,7 @@ public class PropertyFilter extends Application {
                 int propertyId = (int) reserveButton.getUserData(); // Récupérer l'ID de la propriété associé à ce bouton
                 System.out.println("ID de la propriété : " + propertyId); // Afficher l'ID de la propriété dans la console
                 int userId = Utilisateur.getCurrentUser().getId(); // Récupérer l'ID de l'utilisateur connecté
+                System.out.println("ID de l'utilisateur : " + userId); // Afficher l'ID de la propriété dans la console
                 ProgrammerVisitePage programmerVisitePage = new ProgrammerVisitePage(userId, propertyId);
                 try {
                     programmerVisitePage.start(new Stage());
