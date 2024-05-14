@@ -63,7 +63,7 @@ public class LoginController {
             statement.setString(2, password);
             statement.setDate(3, new java.sql.Date(System.currentTimeMillis())); // Date du jour
             statement.setString(4, email); // Nom mis comme l'email
-            statement.setBoolean(5, false); // Statut initial à 0
+            statement.setBoolean(5, true); // Statut initial à 0
             // Exécution de la requête
             int rowsInserted = statement.executeUpdate();
             return rowsInserted > 0;
