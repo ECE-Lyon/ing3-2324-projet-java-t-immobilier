@@ -39,6 +39,10 @@ public class Property {
         this.city = city;
     }
 
+    public Property(int id, String streetNumber, String streetName, String postalCode, String city, double price, double size, int rooms, boolean garden, boolean pool, String type) {
+    }
+
+
     // Getters et setters
     public int getIdProperty() {
         return idProperty;
@@ -157,6 +161,7 @@ public class Property {
     }
 
     public String getImagePath() {
-        return imagePath;
-    }
+        return imagePath;    }
+
+
 }

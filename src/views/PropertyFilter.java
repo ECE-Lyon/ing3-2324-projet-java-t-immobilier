@@ -2,6 +2,7 @@ package views;
 
 import dao.DatabaseConnection;
 import dao.PropertyDAO;
+import dao.DeleteUpdatePropertyDAO;
 import javafx.animation.ScaleTransition;
 import javafx.application.Application;
 import javafx.collections.FXCollections;
@@ -248,7 +249,12 @@ public class PropertyFilter extends Application {
                 editButton.setStyle("-fx-background-color: rgb(119, 195, 213); -fx-text-fill: white; -fx-font-weight: bold;");
                 addHoverAnimation(editButton);
                 editButton.setOnAction(event -> {
-                    // Logique pour modifier la propriété
+                    DeleteUpdateProperty deleteUpdateProperty = new DeleteUpdateProperty();
+                    try {
+                        deleteUpdateProperty.start(new Stage());
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
                     int propertyId = (int) editButton.getUserData(); // Récupérer l'ID de la propriété associé à ce bouton
                     System.out.println("ID de la propriété modifie: " + propertyId); // Afficher l'ID de la propriété dans la console
                     int userId = Utilisateur.getCurrentUser().getId(); // Récupérer l'ID de l'utilisateur connecté
@@ -267,7 +273,8 @@ public class PropertyFilter extends Application {
                 deleteButton.setOnAction(event -> {
                     // Logique pour supprimer la propriété
                     System.out.println("Supprimer la propriété : " + id);
-                    deleteProperty(id);
+                    DeleteUpdatePropertyDAO.deleteProperty(id);
+
                     displayAllProperties();
                 });
 
