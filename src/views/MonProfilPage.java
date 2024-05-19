@@ -14,6 +14,7 @@ import javafx.stage.Stage;
 import models.Utilisateur;
 
 
+
 public class MonProfilPage extends Application {
 
     @Override
@@ -57,7 +58,9 @@ public class MonProfilPage extends Application {
         Label subtitle = new Label("           Informations sur votre profil");
         subtitle.setStyle("-fx-font-size: 14px; -fx-text-fill: #666;");
 
-        // Boutons pour chaque section
+        boolean userStatus = getCurrentUserStatut();
+
+
 
         // Bouton pour afficher les informations du client
         Button myInfoButton = createSectionButton("Mes informations");
@@ -66,27 +69,31 @@ public class MonProfilPage extends Application {
             ClientInfoPage clientInfoPage = new ClientInfoPage(userId);
             clientInfoPage.start(clientInfoStage);
         });
-        Button myVisitsButton = createSectionButton("Mes visites");
-        myVisitsButton.setOnAction(event -> {
-            Stage mesVisitesStage = new Stage();
-            MesVisitesInterface mesVisitesInterface = new MesVisitesInterface();
-            mesVisitesInterface.start(mesVisitesStage);
-        });
 
-        // Création du bouton pour l'historique
-        Button myHistoryButton = createSectionButton("Mon historique");
-        myHistoryButton.setOnAction(event -> {
-            Stage historiqueStage = new Stage();
-            HistoriquePage historiquePage = new HistoriquePage(user);
-            historiquePage.start(historiqueStage);
-        });
+        if(!userStatus){
+            Button myVisitsButton = createSectionButton("Mes visites");
+            myVisitsButton.setOnAction(event -> {
+                Stage mesVisitesStage = new Stage();
+                MesVisitesInterface mesVisitesInterface = new MesVisitesInterface();
+                mesVisitesInterface.start(mesVisitesStage);
+            });
 
+            // Création du bouton pour l'historique
+            Button myHistoryButton = createSectionButton("Mon historique");
+            myHistoryButton.setOnAction(event -> {
+                Stage historiqueStage = new Stage();
+                HistoriquePage historiquePage = new HistoriquePage(user);
+                historiquePage.start(historiqueStage);
+            });
 
+            // Ajout des éléments au conteneur du profil
+            profileLayout.getChildren().addAll(title, subtitle, myInfoButton, myVisitsButton, myHistoryButton);
 
-        // Ajout des éléments au conteneur du profil
-        profileLayout.getChildren().addAll(title, subtitle, myInfoButton, myVisitsButton, myHistoryButton);
-
-
+        }
+        else{
+            // Ajout des éléments au conteneur du profil
+            profileLayout.getChildren().addAll(title, subtitle, myInfoButton);
+        }
 
         // Ajout des éléments à la grille principale
         root.add(profileLayout, 0, 1, 2, 1);
@@ -106,6 +113,15 @@ public class MonProfilPage extends Application {
         button.setPrefHeight(50); // Hauteur du bouton ajustée selon vos besoins
         button.setFont(Font.font(16)); // Taille de police du bouton ajustée selon vos besoins
         return button;
+    }
+
+    // Méthode pour obtenir le statut de l'utilisateur actuellement connecté
+    public boolean getCurrentUserStatut() {
+        if (Utilisateur.getCurrentUser() != null) {
+            return Utilisateur.getCurrentUser().getStatus();
+        } else {
+            return false; // Retourner false si aucun utilisateur n'est connecté
+        }
     }
 
 
