@@ -35,6 +35,7 @@ public class DeleteUpdateProperty extends Application {
     private RadioButton houseRadio;
     private RadioButton apartmentRadio;
 
+
     private DeleteUpdatePropertyDAO deleteUpdatePropertyDAO = new DeleteUpdatePropertyDAO(); // Instance du DAO
 
     @Override
@@ -44,13 +45,18 @@ public class DeleteUpdateProperty extends Application {
         // Initialisation des propriétés depuis la base de données
         initProperties();
 
-        // Setup de la GUI
+        // Configuration de la mise en page de la GUI
         GridPane root = configureRootLayout();
         VBox propertyLayout = configurePropertyLayout();
+
+        // Ajouter propertyLayout à root, vous devez choisir la colonne et la ligne appropriées
+        root.add(propertyLayout, 0, 1); // Choisissez l'index de colonne et de ligne en fonction de votre disposition
+
         Scene scene = new Scene(root, 800, 600);
         primaryStage.setScene(scene);
         primaryStage.show();
     }
+
 
     private GridPane configureRootLayout() {
         GridPane root = new GridPane();
@@ -69,22 +75,54 @@ public class DeleteUpdateProperty extends Application {
     }
 
     private VBox configurePropertyLayout() {
+      // Button modify = configureModifyButton();
+        //Button delete = configureDeleteButton();
         VBox propertyLayout = new VBox(20);
         propertyLayout.setAlignment(Pos.CENTER_LEFT);
+        streetNumberField = new TextField();
+        streetNameField = new TextField();
+        postalCodeField = new TextField();
+        cityField = new TextField();
+        priceField = new TextField();
+        sizeField = new TextField();
+        roomsField = new TextField();
+        gardenCheckBox = new CheckBox();
+        poolCheckBox = new CheckBox();
+        houseRadio = new RadioButton("Maison");
+        apartmentRadio = new RadioButton("Appartement");
+
+        Button modifyButton = new Button("Modifier ");
+        modifyButton.setStyle("-fx-background-color: rgb(213, 119, 195); -fx-text-fill: white;");
+        modifyButton.setFont(Font.font(16));
+        modifyButton.setOnAction(e -> {
+            propertyComboBox.getValue().setPrice(Double.parseDouble(priceField.getText()));
+            propertyComboBox.getValue().setNbRoom(Integer.parseInt(roomsField.getText()));
+            propertyComboBox.getValue().setSize(Double.parseDouble(sizeField.getText()));
+            propertyComboBox.getValue().setHasPool(poolCheckBox.isSelected());
+            propertyComboBox.getValue().setHasGarden(gardenCheckBox.isSelected());
+            updateProperty(propertyComboBox.getValue());
+
+        });
+        Button deleteButton = new Button("Supprimer ");
+        deleteButton.setStyle("-fx-background-color: rgb(213, 119, 195); -fx-text-fill: white;");
+        deleteButton.setFont(Font.font(16));
+        deleteButton.setOnAction(e -> {
+            deleteProperty(propertyComboBox.getValue());
+        });
+
         propertyLayout.getChildren().addAll(
                 createLabeledField("Sélectionnez une Propriété:", propertyComboBox),
-                createLabeledField("Numéro de Rue:", streetNumberField),
-                createLabeledField("Nom de Rue:", streetNameField),
-                createLabeledField("Code Postal:", postalCodeField),
-                createLabeledField("Ville:", cityField),
                 createLabeledField("Prix:", priceField),
                 createLabeledField("Superficie (m²):", sizeField),
                 createLabeledField("Nombre de Chambres:", roomsField),
                 createLabeledField("Jardin:", gardenCheckBox),
                 createLabeledField("Piscine:", poolCheckBox),
-                createLabeledField("Type:", new HBox(10, houseRadio, apartmentRadio)),
-                new HBox(10, configureModifyButton(), configureDeleteButton())
+
+                new HBox(10, modifyButton, deleteButton)
         );
+
+
+
         return propertyLayout;
     }
 
@@ -93,9 +131,14 @@ public class DeleteUpdateProperty extends Application {
         label.setFont(Font.font(14));
         HBox container = new HBox(10);
         container.setAlignment(Pos.CENTER_LEFT);
-        container.getChildren().addAll(label, field);
+        if (label != null && field != null) {
+            container.getChildren().addAll(label, field);
+        } else {
+            System.out.println("Erreur: Label ou Field est null dans createLabeledField.");
+        }
         return container;
     }
+
 
 
 
@@ -104,15 +147,15 @@ public class DeleteUpdateProperty extends Application {
         propertyComboBox = new ComboBox<>();
         propertyComboBox.getItems().addAll(properties);
         propertyComboBox.setPromptText("Sélectionnez une propriété");
-        propertyComboBox.setOnAction(e -> loadPropertyData(propertyComboBox.getValue(), addressComboBox.getValue()));
+        propertyComboBox.setOnAction(e -> loadPropertyData(propertyComboBox.getValue()));
     }
 
-    private void loadPropertyData(Property property, Address address) {
+    private void loadPropertyData(Property property) {
         if (property != null) {
-            streetNumberField.setText(String.valueOf(address.getNumberStreet()));
+            /*streetNumberField.setText(String.valueOf(address.getNumberStreet()));
             streetNameField.setText(address.getNameStreet());
             postalCodeField.setText(String.valueOf(address.getPostalCode()));
-            cityField.setText(address.getCity());
+            cityField.setText(address.getCity());*/
             priceField.setText(String.valueOf(property.getPrice()));
             sizeField.setText(String.valueOf(property.getSize()));
             roomsField.setText(String.valueOf(property.getNbRoom()));
@@ -127,10 +170,12 @@ public class DeleteUpdateProperty extends Application {
     }
 
     private Button configureModifyButton() {
-        Button modifyButton = new Button("Modifier");
+        Button modifyButton = new Button("Modifier ");
         modifyButton.setStyle("-fx-background-color: rgb(213, 119, 195); -fx-text-fill: white;");
         modifyButton.setFont(Font.font(16));
-        modifyButton.setOnAction(e -> updateProperty(propertyComboBox.getValue(), addressComboBox.getValue()));
+        modifyButton.setOnAction(e -> {
+            updateProperty(propertyComboBox.getValue());
+        });
         return modifyButton;
     }
 
@@ -138,12 +183,11 @@ public class DeleteUpdateProperty extends Application {
         Button deleteButton = new Button("Supprimer");
         deleteButton.setStyle("-fx-background-color: rgb(213, 119, 195); -fx-text-fill: white;");
         deleteButton.setFont(Font.font(16));
-        deleteButton.setOnAction(e -> deleteProperty(propertyComboBox.getValue()));
         return deleteButton;
     }
 
-    private void updateProperty(Property property, Address address) {
-        DeleteUpdatePropertyDAO.updateProperty(property, address);
+    private void updateProperty(Property property) {
+        DeleteUpdatePropertyDAO.updateProperty(property);
     }
 
     private void deleteProperty(Property property) {

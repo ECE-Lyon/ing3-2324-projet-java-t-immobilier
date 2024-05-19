@@ -65,6 +65,42 @@ public class Property {
         return nbRoom;
     }
 
+    public void setSize(double size) {
+        this.size = size;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public void setPrice(double price) {
+        this.price = price;
+    }
+
+    public void setStatusSold(boolean statusSold) {
+        this.statusSold = statusSold;
+    }
+
+    public void setHasPool(boolean hasPool) {
+        this.hasPool = hasPool;
+    }
+
+    public void setHasGarden(boolean hasGarden) {
+        this.hasGarden = hasGarden;
+    }
+
+    public void setPropertyType(String propertyType) {
+        this.propertyType = propertyType;
+    }
+
+    public void setNbRoom(int nbRoom) {
+        this.nbRoom = nbRoom;
+    }
+
+    public void setProgramVisit(boolean programVisit) {
+        this.programVisit = programVisit;
+    }
+
     public boolean isProgramVisit() {
         return programVisit;
     }

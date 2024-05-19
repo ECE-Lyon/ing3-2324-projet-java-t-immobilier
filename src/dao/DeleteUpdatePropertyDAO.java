@@ -42,8 +42,8 @@ public class DeleteUpdatePropertyDAO {
         return DatabaseConnection.getConnection();
     }
 
-    public static void updateProperty(Property property, Address address) {
-        String query = "UPDATE property SET size = ?, description = ?, price = ?, status_sold = ?, has_pool = ?, has_garden = ?, property_type = ?, nb_room = ?, program_visit = ?, id_client = ?, id_employee = ? WHERE id_property = ?";
+    public static void updateProperty(Property property) {
+        String query = "UPDATE PROPERTY SET size = ?, description = ?, price = ?, status_sold = ?, has_pool = ?, has_garden = ?, property_type = ?, nb_room = ? WHERE id_property = ?";
 
         try (Connection connection = DatabaseConnection.getConnection();
              PreparedStatement statement = connection.prepareStatement(query)) {
@@ -56,19 +56,17 @@ public class DeleteUpdatePropertyDAO {
             statement.setBoolean(6, property.isHasGarden());
             statement.setString(7, property.getPropertyType());
             statement.setInt(8, property.getNbRoom());
-            statement.setBoolean(9, property.isProgramVisit());
-            statement.setInt(10, property.getIdClient());
-            statement.setInt(11, property.getIdEmployee());
-            statement.setInt(12, property.getIdProperty());
+            statement.setInt(9, property.getIdProperty());
             statement.executeUpdate();
+            System.out.println("Propriété modifiée");
         } catch (SQLException e) {
             System.out.println("Error updating property: " + e.getMessage());
         }
     }
 
     public static void deleteProperty(int id) {
-        String deleteAddressQuery = "DELETE FROM address WHERE id_property = ?";
-        String deletePropertyQuery = "DELETE FROM property WHERE id_property = ?";
+        String deleteAddressQuery = "DELETE FROM ADDRESS WHERE id_property = ?";
+        String deletePropertyQuery = "DELETE FROM PROPERTY WHERE id_property = ?";
 
         try (Connection connection = DatabaseConnection.getConnection()) {
             // Désactiver les contraintes de clé étrangère

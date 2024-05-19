@@ -255,7 +255,7 @@ public class PropertyFilter extends Application {
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
-                    int propertyId = (int) editButton.getUserData(); // Récupérer l'ID de la propriété associé à ce bouton
+                    /*int propertyId = (int) editButton.getUserData(); // Récupérer l'ID de la propriété associé à ce bouton
                     System.out.println("ID de la propriété modifie: " + propertyId); // Afficher l'ID de la propriété dans la console
                     int userId = Utilisateur.getCurrentUser().getId(); // Récupérer l'ID de l'utilisateur connecté
                     System.out.println("ID de l'utilisateur : " + userId); // Afficher l'ID de la propriété dans la console
@@ -264,7 +264,7 @@ public class PropertyFilter extends Application {
                         programmerVisitePage.start(new Stage());
                     } catch (Exception e) {
                         e.printStackTrace();
-                    }
+                    }*/
                     // Ici, vous pouvez ouvrir une nouvelle fenêtre ou un formulaire pour modifier la propriété
                 });
                 Button deleteButton = new Button("Supprimer");
