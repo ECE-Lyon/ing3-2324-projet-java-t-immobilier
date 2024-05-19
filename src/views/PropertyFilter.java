@@ -21,7 +21,6 @@ import javafx.util.Duration;
 import javafx.stage.Modality;
 import models.Utilisateur;
 
-
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -48,13 +47,20 @@ public class PropertyFilter extends Application {
         root.setPadding(new Insets(20));
         root.setBackground(new Background(new BackgroundFill(Color.WHITE, CornerRadii.EMPTY, Insets.EMPTY)));
 
-
         Button afficherLesFiltres = new Button("Afficher les filtres");
         afficherLesFiltres.setStyle("-fx-background-color: rgb(213, 119, 195); -fx-text-fill: white; -fx-font-weight: bold;");
         addHoverAnimation(afficherLesFiltres); // Ajouter une animation au survol
         afficherLesFiltres.setOnAction(event -> showFiltersPopup(primaryStage));
 
-
+        // Ajouter un bouton pour ajouter une nouvelle propriété
+        Button ajouterProprieteButton = new Button("Ajouter une propriété");
+        ajouterProprieteButton.setStyle("-fx-background-color: rgb(119, 195, 213); -fx-text-fill: white; -fx-font-weight: bold;");
+        addHoverAnimation(ajouterProprieteButton);
+        ajouterProprieteButton.setOnAction(event -> {
+            // Logique pour ajouter une nouvelle propriété
+            System.out.println("Ajouter une propriété");
+            // Ici, vous pouvez ouvrir une nouvelle fenêtre ou un formulaire pour ajouter une propriété
+        });
 
         // Logo de l'agence en haut de la page
         ImageView logoView = new ImageView(new Image("ece_immo.jpeg"));
@@ -84,12 +90,16 @@ public class PropertyFilter extends Application {
 
         // Affichage de toutes les propriétés au démarrage de l'application
         displayAllProperties();
+        boolean userStatus = getCurrentUserStatut();
 
-        root.getChildren().addAll(logoView,filtersGrid, propertyContainer);
+        // Afficher les boutons en fonction du statut de l'utilisateur
+        if (userStatus) {
+            root.add(ajouterProprieteButton, 1, 0);
+        }
 
         // Ajout des éléments à la grille principale
         root.add(afficherLesFiltres, 0, 0);
-        root.add(scrollPane, 0, 2);
+        root.add(scrollPane, 0, 2, 2, 1);
 
         Scene scene = new Scene(root);
         primaryStage.setScene(scene);
@@ -140,12 +150,12 @@ public class PropertyFilter extends Application {
 
         filtersContainer.getChildren().addAll(new Label(""), cityComboBox, new Label(""), typeComboBox, new Label("Prix minimum:"), minPriceField, new Label("Prix maximum:"), maxPriceField, applyFiltersButton, resetFiltersButton);
 
-
         Scene filtersScene = new Scene(filtersContainer);
         filtersStage.setScene(filtersScene);
         filtersStage.setTitle("Filtres des propriétés");
         filtersStage.show();
     }
+
     private void displayProperties(ResultSet resultSet) throws SQLException {
         propertyContainer.getChildren().clear();
         while (resultSet.next()) {
@@ -168,7 +178,6 @@ public class PropertyFilter extends Application {
             VBox addressPriceBox = new VBox();
             addressPriceBox.setAlignment(Pos.CENTER_LEFT);
             addressPriceBox.setSpacing(10);
-
 
             Label sizeLabel = new Label("Size: " + size);
             sizeLabel.setFont(Font.font("Arial", 14));
@@ -221,16 +230,56 @@ public class PropertyFilter extends Application {
                 }
             });
 
-// Lors de la création de chaque bouton "Réserver une visite", attribuez l'ID de la propriété correspondante
+            // Lors de la création de chaque bouton "Réserver une visite", attribuez l'ID de la propriété correspondante
             reserveButton.setUserData(id); // Remplacez "id" par l'ID de la propriété associée à ce bouton
 
+            boolean userStatus = getCurrentUserStatut();
+            if(userStatus){
+                // Ajouter les boutons "Modifier" et "Supprimer"
+                Button editButton = new Button("Modifier");
+                editButton.setStyle("-fx-background-color: rgb(119, 195, 213); -fx-text-fill: white; -fx-font-weight: bold;");
+                addHoverAnimation(editButton);
+                editButton.setOnAction(event -> {
+                    // Logique pour modifier la propriété
+                    int propertyId = (int) reserveButton.getUserData(); // Récupérer l'ID de la propriété associé à ce bouton
+                    System.out.println("ID de la propriété modifie: " + propertyId); // Afficher l'ID de la propriété dans la console
+                    int userId = Utilisateur.getCurrentUser().getId(); // Récupérer l'ID de l'utilisateur connecté
+                    System.out.println("ID de l'utilisateur : " + userId); // Afficher l'ID de la propriété dans la console
+                    ProgrammerVisitePage programmerVisitePage = new ProgrammerVisitePage(userId, propertyId);
+                    try {
+                        programmerVisitePage.start(new Stage());
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    // Ici, vous pouvez ouvrir une nouvelle fenêtre ou un formulaire pour modifier la propriété
+                });
+                Button deleteButton = new Button("Supprimer");
+                deleteButton.setStyle("-fx-background-color: rgb(213, 119, 119); -fx-text-fill: white; -fx-font-weight: bold;");
+                addHoverAnimation(deleteButton);
+                deleteButton.setOnAction(event -> {
+                    // Logique pour supprimer la propriété
+                    System.out.println("Supprimer la propriété : " + id);
+                    deleteProperty(id);
+                    displayAllProperties();
+                });
 
-            propertyBox.getChildren().addAll(typeLabel, addressLabel, priceLabel,contentBox,reserveButton);
+                HBox buttonBox = new HBox(10);
+                buttonBox.setAlignment(Pos.CENTER_LEFT);
+                buttonBox.getChildren().addAll(editButton, deleteButton, reserveButton);
 
-            propertyContainer.getChildren().add(propertyBox);
+                propertyBox.getChildren().addAll(typeLabel, addressLabel, priceLabel, contentBox, buttonBox);
+                propertyContainer.getChildren().add(propertyBox);
+            }
+            else{
+                HBox buttonBox = new HBox(10);
+                buttonBox.setAlignment(Pos.CENTER_LEFT);
+                buttonBox.getChildren().addAll(reserveButton);
+
+                propertyBox.getChildren().addAll(typeLabel, addressLabel, priceLabel, contentBox, buttonBox);
+                propertyContainer.getChildren().add(propertyBox);
+            }
         }
     }
-
 
     private void displayAllProperties() {
         try {
@@ -300,6 +349,19 @@ public class PropertyFilter extends Application {
         displayAllProperties();
     }
 
+    private void deleteProperty(int propertyId) {
+        try {
+            Connection connection = DatabaseConnection.getConnection();
+            Statement statement = connection.createStatement();
+            statement.executeUpdate("DELETE FROM PROPERTY WHERE id_property = " + propertyId);
+            statement.executeUpdate("DELETE FROM ADDRESS WHERE id_property = " + propertyId);
+            statement.close();
+            connection.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
     private void addHoverAnimation(Button button) {
         ScaleTransition scaleIn = new ScaleTransition(Duration.millis(100), button);
         scaleIn.setToX(1.06); // Augmenter la valeur pour un agrandissement plus prononcé
@@ -310,6 +372,16 @@ public class PropertyFilter extends Application {
         button.setOnMouseEntered(event -> scaleIn.play());
         button.setOnMouseExited(event -> scaleOut.play());
     }
+
+    // Méthode pour obtenir le statut de l'utilisateur actuellement connecté
+    public boolean getCurrentUserStatut() {
+        if (Utilisateur.getCurrentUser() != null) {
+            return Utilisateur.getCurrentUser().getStatus();
+        } else {
+            return false; // Retourner false si aucun utilisateur n'est connecté
+        }
+    }
+
 
     public static void main(String[] args) {
         launch(args);
