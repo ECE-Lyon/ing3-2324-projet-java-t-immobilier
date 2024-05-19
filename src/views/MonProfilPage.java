@@ -94,8 +94,8 @@ public class MonProfilPage extends Application {
             Button theVisitsButton = createSectionButton("Les visites programmées");
             theVisitsButton.setOnAction(event -> {
                 Stage mesVisitesStage = new Stage();
-                MesVisitesInterface mesVisitesInterface = new MesVisitesInterface();
-                mesVisitesInterface.start(mesVisitesStage);
+                VisitesInterfaceEmployee visitesInterfaceEmployee = new VisitesInterfaceEmployee();
+                visitesInterfaceEmployee.start(mesVisitesStage);
             });
             // Ajout des éléments au conteneur du profil
             profileLayout.getChildren().addAll(title, subtitle, myInfoButton,theVisitsButton);

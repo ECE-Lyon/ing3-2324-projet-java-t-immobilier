@@ -58,7 +58,7 @@ public class ClientInfoPageDAO {
             preparedStatement.setString(2, emailField.getText());
             preparedStatement.setString(3, passwordField.getText());
             preparedStatement.setString(4, dateField.getText());
-            preparedStatement.setBoolean(5, statutField.getText().equalsIgnoreCase("Client")); // Convertir le texte en booléen
+            preparedStatement.setBoolean(5, statutField.getText().equalsIgnoreCase("Employé")); // Convertir le texte en booléen
             preparedStatement.setInt(6, userId);
 
             // Exécution de la requête
