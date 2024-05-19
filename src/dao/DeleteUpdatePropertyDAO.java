@@ -1,37 +1,35 @@
 package dao;
 
-import javafx.stage.Stage;
 import models.Address;
 import models.Property;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-import static javax.management.remote.JMXConnectorFactory.connect;
-
 public class DeleteUpdatePropertyDAO {
     Connection connection = null;
 
     public static List<Property> getAllProperties() {
         List<Property> properties = new ArrayList<>();
-        String sql = "SELECT id, street_number, street_name, postal_code, city, price, size, rooms, garden, pool, type FROM properties";
+        String sql = "SELECT id_property, size, description, price, status_sold, has_pool, has_garden, property_type, nb_room, program_visit, id_client, id_employee FROM property";
         try (Connection conn = connect();
              PreparedStatement pstmt = conn.prepareStatement(sql);
              ResultSet rs = pstmt.executeQuery()) {
 
             while (rs.next()) {
                 properties.add(new Property(
-                        rs.getInt("id"),
-                        rs.getString("street_number"),
-                        rs.getString("street_name"),
-                        rs.getString("postal_code"),
-                        rs.getString("city"),
+                        rs.getInt("id_property"),
+                        rs.getFloat("size"),
+                        rs.getString("description"),
                         rs.getDouble("price"),
-                        rs.getDouble("size"),
-                        rs.getInt("rooms"),
-                        rs.getBoolean("garden"),
-                        rs.getBoolean("pool"),
-                        rs.getString("type")
+                        rs.getBoolean("status_sold"),
+                        rs.getBoolean("has_pool"),
+                        rs.getBoolean("has_garden"),
+                        rs.getString("property_type"),
+                        rs.getInt("nb_room"),
+                        rs.getBoolean("program_visit"),
+                        rs.getInt("id_client"),
+                        rs.getInt("id_employee")
                 ));
             }
         } catch (SQLException e) {
@@ -45,22 +43,23 @@ public class DeleteUpdatePropertyDAO {
     }
 
     public static void updateProperty(Property property, Address address) {
-        String query = "UPDATE properties SET street_number = ?, street_name = ?, postal_code = ?, city = ?, price = ?, size = ?, rooms = ?, garden = ?, pool = ?, type = ? WHERE id = ?";
+        String query = "UPDATE property SET size = ?, description = ?, price = ?, status_sold = ?, has_pool = ?, has_garden = ?, property_type = ?, nb_room = ?, program_visit = ?, id_client = ?, id_employee = ? WHERE id_property = ?";
 
         try (Connection connection = DatabaseConnection.getConnection();
              PreparedStatement statement = connection.prepareStatement(query)) {
 
-            statement.setInt(1, address.getStreetNumber());
-            statement.setString(2, address.getStreetName());
-            statement.setInt(3, address.getPostalCode());
-            statement.setString(4, address.getCity());
-            statement.setDouble(5, property.getPrice());
-            statement.setDouble(6, property.getSize());
-            statement.setInt(7, property.getNumberOfRooms());
-            statement.setBoolean(8, property.isHasGarden());
-            statement.setBoolean(9, property.isHasPool());
-            statement.setString(10, property.getPropertyType());
-            statement.setInt(11, property.getIdProperty());
+            statement.setDouble(1, property.getSize());
+            statement.setString(2, property.getDescription());
+            statement.setDouble(3, property.getPrice());
+            statement.setBoolean(4, property.isStatusSold());
+            statement.setBoolean(5, property.isHasPool());
+            statement.setBoolean(6, property.isHasGarden());
+            statement.setString(7, property.getPropertyType());
+            statement.setInt(8, property.getNbRoom());
+            statement.setBoolean(9, property.isProgramVisit());
+            statement.setInt(10, property.getIdClient());
+            statement.setInt(11, property.getIdEmployee());
+            statement.setInt(12, property.getIdProperty());
             statement.executeUpdate();
         } catch (SQLException e) {
             System.out.println("Error updating property: " + e.getMessage());
@@ -68,17 +67,34 @@ public class DeleteUpdatePropertyDAO {
     }
 
     public static void deleteProperty(int id) {
-        String query = "DELETE FROM properties WHERE id = ?";
+        String deleteAddressQuery = "DELETE FROM address WHERE id_property = ?";
+        String deletePropertyQuery = "DELETE FROM property WHERE id_property = ?";
 
-        try (Connection connection = DatabaseConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(query)) {
-            statement.setInt(1, id);
-            statement.executeUpdate();
+        try (Connection connection = DatabaseConnection.getConnection()) {
+            // Désactiver les contraintes de clé étrangère
+            try (Statement stmt = connection.createStatement()) {
+                stmt.execute("SET FOREIGN_KEY_CHECKS=0");
+            }
+
+            // Supprimer les adresses associées à la propriété
+            try (PreparedStatement addressStmt = connection.prepareStatement(deleteAddressQuery)) {
+                addressStmt.setInt(1, id);
+                addressStmt.executeUpdate();
+            }
+
+            // Supprimer la propriété
+            try (PreparedStatement propertyStmt = connection.prepareStatement(deletePropertyQuery)) {
+                propertyStmt.setInt(1, id);
+                propertyStmt.executeUpdate();
+            }
+
+            // Réactiver les contraintes de clé étrangère
+            try (Statement stmt = connection.createStatement()) {
+                stmt.execute("SET FOREIGN_KEY_CHECKS=1");
+            }
+
         } catch (SQLException e) {
             System.out.println("Impossible de supprimer la propriété: " + e.getMessage());
         }
     }
-
-
-
 }

@@ -42,15 +42,15 @@ public class PropertyDAO {
                     String type = resultSet.getString("property_type");
                     int numberOfRooms = resultSet.getInt("nb_room");
                     boolean programVisit = resultSet.getBoolean("program_visit");
-                    int idBuyer = resultSet.getInt("id_buyer");
-                    int idSeller = resultSet.getInt("id_seller");
-                    int idVisit = resultSet.getInt("id_visit");
+                    int idClient = resultSet.getInt("id_buyer");
+                    //int idSeller = resultSet.getInt("id_seller");
+                    //int idVisit = resultSet.getInt("id_visit");
                     int idEmployee = resultSet.getInt("id_employee");
-                    String title = resultSet.getString("title");
-                    String imagePath = resultSet.getString("imagePath");
-                    String city = resultSet.getString("city");
+                    //String title = resultSet.getString("title");
+                    //String imagePath = resultSet.getString("imagePath");
+                    //String city = resultSet.getString("city");
 
-                    Property property = new Property(idProperty, propertySize, description, price, statusSold, propertyHasPool, propertyHasGarden, type, numberOfRooms, programVisit, idBuyer, idSeller, idVisit, idEmployee, title, imagePath, city);
+                    Property property = new Property(idProperty, propertySize, description, price, statusSold, propertyHasPool, propertyHasGarden, type, numberOfRooms, programVisit, idClient,idEmployee);
                     properties.add(property);
                 }
             }

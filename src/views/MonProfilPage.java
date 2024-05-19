@@ -69,7 +69,6 @@ public class MonProfilPage extends Application {
             ClientInfoPage clientInfoPage = new ClientInfoPage(userId);
             clientInfoPage.start(clientInfoStage);
         });
-
         if(!userStatus){
             Button myVisitsButton = createSectionButton("Mes visites");
             myVisitsButton.setOnAction(event -> {
@@ -91,8 +90,15 @@ public class MonProfilPage extends Application {
 
         }
         else{
+
+            Button theVisitsButton = createSectionButton("Les visites programmées");
+            theVisitsButton.setOnAction(event -> {
+                Stage mesVisitesStage = new Stage();
+                MesVisitesInterface mesVisitesInterface = new MesVisitesInterface();
+                mesVisitesInterface.start(mesVisitesStage);
+            });
             // Ajout des éléments au conteneur du profil
-            profileLayout.getChildren().addAll(title, subtitle, myInfoButton);
+            profileLayout.getChildren().addAll(title, subtitle, myInfoButton,theVisitsButton);
         }
 
         // Ajout des éléments à la grille principale

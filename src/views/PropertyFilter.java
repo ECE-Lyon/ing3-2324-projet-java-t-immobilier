@@ -273,7 +273,8 @@ public class PropertyFilter extends Application {
                 deleteButton.setOnAction(event -> {
                     // Logique pour supprimer la propriété
                     System.out.println("Supprimer la propriété : " + id);
-                    DeleteUpdatePropertyDAO.deleteProperty(id);
+                    deleteProperty(id);
+                    //DeleteUpdatePropertyDAO.deleteProperty(id);
 
                     displayAllProperties();
                 });
@@ -364,17 +365,9 @@ public class PropertyFilter extends Application {
         displayAllProperties();
     }
 
-    private void deleteProperty(int propertyId) {
-        try {
-            Connection connection = DatabaseConnection.getConnection();
-            Statement statement = connection.createStatement();
-            statement.executeUpdate("DELETE FROM PROPERTY WHERE id_property = " + propertyId);
-            statement.executeUpdate("DELETE FROM ADDRESS WHERE id_property = " + propertyId);
-            statement.close();
-            connection.close();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+    public void deleteProperty(int propertyId) {
+        DeleteUpdatePropertyDAO deleteUpdatePropertyDAO = new DeleteUpdatePropertyDAO();
+        deleteUpdatePropertyDAO.deleteProperty(propertyId);
     }
 
     private void addHoverAnimation(Button button) {

@@ -109,13 +109,13 @@ public class DeleteUpdateProperty extends Application {
 
     private void loadPropertyData(Property property, Address address) {
         if (property != null) {
-            streetNumberField.setText(String.valueOf(address.getStreetNumber()));
-            streetNameField.setText(address.getStreetName());
+            streetNumberField.setText(String.valueOf(address.getNumberStreet()));
+            streetNameField.setText(address.getNameStreet());
             postalCodeField.setText(String.valueOf(address.getPostalCode()));
             cityField.setText(address.getCity());
             priceField.setText(String.valueOf(property.getPrice()));
             sizeField.setText(String.valueOf(property.getSize()));
-            roomsField.setText(String.valueOf(property.getNumberOfRooms()));
+            roomsField.setText(String.valueOf(property.getNbRoom()));
             gardenCheckBox.setSelected(property.isHasGarden());
             poolCheckBox.setSelected(property.isHasPool());
             if ("Maison".equals(property.getPropertyType())) {
