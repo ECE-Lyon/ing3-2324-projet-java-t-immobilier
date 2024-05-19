@@ -59,7 +59,12 @@ public class PropertyFilter extends Application {
         ajouterProprieteButton.setOnAction(event -> {
             // Logique pour ajouter une nouvelle propriété
             System.out.println("Ajouter une propriété");
-            // Ici, vous pouvez ouvrir une nouvelle fenêtre ou un formulaire pour ajouter une propriété
+            AddProperty addProperty = new AddProperty();
+            try {
+                addProperty.start(new Stage());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         });
 
         // Logo de l'agence en haut de la page
@@ -244,7 +249,7 @@ public class PropertyFilter extends Application {
                 addHoverAnimation(editButton);
                 editButton.setOnAction(event -> {
                     // Logique pour modifier la propriété
-                    int propertyId = (int) reserveButton.getUserData(); // Récupérer l'ID de la propriété associé à ce bouton
+                    int propertyId = (int) editButton.getUserData(); // Récupérer l'ID de la propriété associé à ce bouton
                     System.out.println("ID de la propriété modifie: " + propertyId); // Afficher l'ID de la propriété dans la console
                     int userId = Utilisateur.getCurrentUser().getId(); // Récupérer l'ID de l'utilisateur connecté
                     System.out.println("ID de l'utilisateur : " + userId); // Afficher l'ID de la propriété dans la console
